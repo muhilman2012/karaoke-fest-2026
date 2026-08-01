@@ -1,0 +1,88 @@
+services:
+  # Container utama PHP-FPM
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: laravel-karaoke-app
+    container_name: karaoke_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - karaoke-network
+    depends_on:
+      - db
+      - redis
+
+  # Container Web Server (Nginx)
+  nginx:
+    image: nginx:alpine
+    container_name: karaoke_nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - karaoke-network
+    depends_on:
+      - app
+
+  # Container Database MySQL
+  db:
+    image: mysql:8.0
+    container_name: karaoke_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: karaoke_live
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      MYSQL_USER: karaoke_user
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - karaoke-network
+
+  # Container Redis (Untuk Cache, Queue, dan Broadcasting)
+  redis:
+    image: redis:alpine
+    container_name: karaoke_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - karaoke-network
+
+  # Container khusus untuk Laravel Reverb (WebSocket)
+  # Gunakan ini jika Laravel menggunakan Reverb (Laravel 11+). 
+  # Jika pakai package lain, command-nya bisa disesuaikan.
+  reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: karaoke_reverb
+    restart: unless-stopped
+    working_dir: /var/www
+    # Perintah untuk menjalankan reverb server yang listen ke semua interface
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    volumes:
+      - ./:/var/www
+    ports:
+      - "8080:8080"
+    networks:
+      - karaoke-network
+    depends_on:
+      - app
+      - redis
+
+networks:
+  karaoke-network:
+    driver: bridge
+
+volumes:
+  dbdata:
