@@ -6,7 +6,7 @@
     <title>Dashboard Admin Lomba</title>
     <link rel="icon" type="image/png" href="{{ asset('logo/setneg.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('logo/setneg.png') }}">
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-100 antialiased">
     <livewire:admin-dashboard />

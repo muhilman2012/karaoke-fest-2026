@@ -6,7 +6,7 @@
     <title>Sistem Penilaian Lomba Karaoke</title>
     <link rel="icon" type="image/png" href="{{ asset('logo/setneg.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('logo/setneg.png') }}">
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 min-h-screen text-white font-sans flex flex-col items-center justify-center p-6">
 
@@ -16,7 +16,7 @@
                 Selamat Datang
             </span>
             <h1 class="text-5xl md:text-7xl font-black mt-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-400">
-                🎤 SETWAPRES KARAOKE FEST 2026 🎤
+                SETWAPRES KARAOKE FEST 2026 🎤
             </h1>
             <p class="text-gray-400 text-lg mt-3">Silakan pilih menu navigasi di bawah ini sesuai peran Anda.</p>
         </div>

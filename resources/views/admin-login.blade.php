@@ -6,7 +6,7 @@
     <title>Login Administrator</title>
     <link rel="icon" type="image/png" href="{{ asset('logo/setneg.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('logo/setneg.png') }}">
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-slate-900 min-h-screen flex items-center justify-center p-4">
     <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md">

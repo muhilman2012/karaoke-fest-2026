@@ -50,18 +50,27 @@ class DatabaseSeeder extends Seeder
             Judge::create($judge);
         }
 
-        // 3. Seeder Peserta
+        // 3. Seeder Peserta beserta Judul Lagu
         $participants = [
-            'Biro Protokol', 'Deputi 1', 'DWP', 'Tim SKWP', 
-            'Biro Umum', 'Deputi 2', 'Deputi 3', 'Outsourcing', 
-            'Biro PMI', 'Tim Sespri', 'Biro TUSDM', 'Biro Perkeu'
+            ['name' => 'Biro Protokol', 'song' => 'Melompat Lebih Tinggi'],
+            ['name' => 'Deputi 1', 'song' => 'Dia Milikku'],
+            ['name' => 'DWP', 'song' => 'Anak Sekolah'],
+            ['name' => 'Tim SKWP', 'song' => 'Berharap Tak Berpisah'],
+            ['name' => 'Biro Umum', 'song' => 'Begitu Indah'],
+            ['name' => 'Deputi 2', 'song' => 'Ku Bahagia'],
+            ['name' => 'Deputi 3', 'song' => 'Pacarku Superstar'],
+            ['name' => 'Outsourcing', 'song' => ''], // Dikosongkan sesuai daftar
+            ['name' => 'Biro PMI', 'song' => 'Hip Hip Hura'],
+            ['name' => 'Tim Sespri', 'song' => 'Kamu Ngga Sendirian'],
+            ['name' => 'Biro TUSDM', 'song' => 'Galih dan Ratna'],
+            ['name' => 'Biro Perkeu', 'song' => 'Spontan (Tanpa) Uhuy'],
         ];
 
-        foreach ($participants as $index => $name) {
+        foreach ($participants as $index => $participant) {
             $order = $index + 1;
             Participant::create([
-                'name' => $name,
-                'song_title' => 'Lagu Pilihan ' . $order,
+                'name' => $participant['name'],
+                'song_title' => $participant['song'] ?: 'Lagu Belum Ditentukan', // Fallback jika kosong
                 'order_number' => $order,
                 'status' => $order === 1 ? 'performing' : 'waiting', 
             ]);

@@ -6,7 +6,7 @@
     <title>Leaderboard Pemenang Lomba</title>
     <link rel="icon" type="image/png" href="{{ asset('logo/setneg.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('logo/setneg.png') }}">
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         @keyframes float {
