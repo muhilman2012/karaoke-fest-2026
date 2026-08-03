@@ -60,6 +60,13 @@
                 </div>
             </a>
 
+            <a href="/vote" class="group bg-slate-800/80 hover:bg-cyan-600 border border-slate-700 hover:border-cyan-500 p-8 rounded-3xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-left flex items-center gap-6">
+                <div class="text-5xl bg-cyan-500/20 p-4 rounded-2xl group-hover:bg-white/20 transition">📱</div>
+                <div>
+                    <h2 class="text-2xl font-black group-hover:text-white">Voting Penonton</h2>
+                    <p class="text-gray-400 text-sm group-hover:text-cyan-100 mt-1">Dukung peserta favoritmu di sini!</p>
+                </div>
+            </a>
         </div>
 
         <div class="mt-16 text-gray-500 text-xs">

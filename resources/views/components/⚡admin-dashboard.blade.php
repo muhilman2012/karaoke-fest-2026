@@ -5,10 +5,11 @@ use App\Models\Participant;
 use App\Models\Judge;
 use App\Models\Aspect;
 use App\Models\Score;
+use App\Models\Vote; // Tambahkan ini
 
 new class extends Component
 {
-    public $activeTab = 'live'; // 'live', 'peserta', 'juri', 'aspek', 'rekap'
+    public $activeTab = 'live'; // 'live', 'peserta', 'juri', 'aspek', 'rekap', 'favorit', 'voting'
 
     // State untuk Modal Edit
     public $showEditModal = false;
@@ -103,6 +104,9 @@ new class extends Component
             'participants' => Participant::with(['scores.details.aspect', 'scores.judge'])->orderBy('order_number')->get(),
             'judges' => Judge::all(),
             'aspects' => Aspect::all(),
+            // Data khusus untuk tab voting
+            'votingResults' => Participant::withCount('votes')->orderByDesc('votes_count')->get(),
+            'totalVotes' => Vote::count(),
         ];
     }
 
@@ -137,6 +141,8 @@ new class extends Component
             <button wire:click="setTab('juri')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'juri' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">Kelola Juri</button>
             <button wire:click="setTab('aspek')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'aspek' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">Aspek Penilaian</button>
             <button wire:click="setTab('favorit')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'favorit' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">Juara Favorit</button>
+            <!-- Tombol Tab Baru: Hasil Voting -->
+            <button wire:click="setTab('voting')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'voting' ? 'bg-pink-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">📊 Hasil Voting</button>
         </div>
 
         <!-- TAB: LIVE CONTROL -->
@@ -294,6 +300,81 @@ new class extends Component
         </div>
         @endif
 
+        <!-- TAB BARU: HASIL VOTING -->
+        @if($activeTab === 'voting')
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-6 overflow-x-auto" wire:poll.5s>
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">🏆 Rekap Voting Penonton</h2>
+                    <p class="text-sm text-gray-500">Halaman ini otomatis diperbarui setiap 5 detik.</p>
+                </div>
+                <div class="bg-pink-50 text-pink-700 px-6 py-2 rounded-xl text-center border border-pink-100">
+                    <span class="text-xs font-bold block uppercase tracking-wider">Total Suara Masuk</span>
+                    <span class="text-3xl font-black">{{ $totalVotes }}</span>
+                </div>
+            </div>
+            
+            <table class="w-full text-left border-collapse min-w-max">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-600">
+                        <th class="p-3 text-center">Peringkat</th>
+                        <th class="p-3">Nama Tim</th>
+                        <th class="p-3 text-right">Perolehan Suara</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($votingResults as $index => $p)
+                    <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="p-3 text-center text-2xl">
+                            @if($index === 0 && $p->votes_count > 0) 🥇
+                            @elseif($index === 1 && $p->votes_count > 0) 🥈
+                            @elseif($index === 2 && $p->votes_count > 0) 🥉
+                            @else <span class="text-sm font-bold text-gray-400">#{{ $index + 1 }}</span>
+                            @endif
+                        </td>
+                        <td class="p-3 font-bold text-gray-800 text-lg">{{ $p->name }}</td>
+                        <td class="p-3 text-right">
+                            <span class="bg-pink-100 text-pink-700 font-black px-4 py-1.5 rounded-lg text-lg">
+                                {{ $p->votes_count }}
+                            </span>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @endif
+
+        <!-- TAB: JUARA FAVORIT (MANUAL OVERRIDE) -->
+        @if($activeTab === 'favorit')
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-6 overflow-x-auto">
+            <h2 class="text-xl font-bold mb-2">Pilih Juara Favorit (Tampilan Layar)</h2>
+            <p class="text-sm text-gray-500 mb-6">Pilih salah satu peserta yang akan ditampilkan sebagai Juara Favorit pada layar Leaderboard. Anda bisa menyesuaikannya dengan hasil dari tab Voting di atas.</p>
+            
+            <table class="w-full text-left border-collapse mt-4 min-w-max">
+                <tr class="bg-gray-100"><th class="p-3">No Urut</th><th class="p-3">Nama Tim</th><th class="p-3">Status Favorit</th><th class="p-3">Aksi</th></tr>
+                @foreach($participants as $p)
+                <tr class="border-b">
+                    <td class="p-3 text-center">{{ $p->order_number }}</td>
+                    <td class="p-3 font-bold">{{ $p->name }}</td>
+                    <td class="p-3">
+                        @if($p->is_favorite)
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 font-bold text-xs rounded-full">⭐ JUARA FAVORIT AKTIF</span>
+                        @else
+                            <span class="text-gray-400 text-sm">-</span>
+                        @endif
+                    </td>
+                    <td class="p-3">
+                        <button wire:click="setFavorite({{ $p->id }})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow transition">
+                            Jadikan Favorit
+                        </button>
+                    </td>
+                </tr>
+                @endforeach
+            </table>
+        </div>
+        @endif
+
         <!-- MODAL EDIT POP-UP -->
         @if($showEditModal)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -343,34 +424,6 @@ new class extends Component
             </div>
         </div>
         @endif
-
-        @if($activeTab === 'favorit')
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-6 overflow-x-auto">
-            <h2 class="text-xl font-bold mb-2">Pilih Juara Favorit</h2>
-            <p class="text-sm text-gray-500 mb-6">Pilih salah satu peserta yang akan ditampilkan sebagai Juara Favorit pada layar Leaderboard.</p>
-            
-            <table class="w-full text-left border-collapse mt-4 min-w-max">
-                <tr class="bg-gray-100"><th class="p-3">No Urut</th><th class="p-3">Nama Tim</th><th class="p-3">Status Favorit</th><th class="p-3">Aksi</th></tr>
-                @foreach($participants as $p)
-                <tr class="border-b">
-                    <td class="p-3 text-center">{{ $p->order_number }}</td>
-                    <td class="p-3 font-bold">{{ $p->name }}</td>
-                    <td class="p-3">
-                        @if($p->is_favorite)
-                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 font-bold text-xs rounded-full">⭐ JUARA FAVORIT AKTIF</span>
-                        @else
-                            <span class="text-gray-400 text-sm">-</span>
-                        @endif
-                    </td>
-                    <td class="p-3">
-                        <button wire:click="setFavorite({{ $p->id }})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow transition">
-                            Jadikan Favorit
-                        </button>
-                    </td>
-                </tr>
-                @endforeach
-            </table>
-        </div>
-        @endif
+        
     </div>
 </div>

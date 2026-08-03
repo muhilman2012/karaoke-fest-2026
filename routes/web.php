@@ -38,6 +38,19 @@ Route::get('/juri/form', function () { return view('juri'); });
 Route::get('/live', function () { return view('live'); });
 Route::get('/leaderboard', function () { return view('leaderboard'); });
 
+// 7. Voting Penonton
+Route::get('/vote', function () { 
+    return view('vote'); 
+});
+
+// 8. Rekap Voting (Admin)
+Route::get('/admin/votes', function () { 
+    if (!session('is_admin')) {
+        return redirect('/admin/login');
+    }
+    return view('admin-votes'); 
+});
+
 Route::get('/api/live-score', function () {
     $activeParticipant = Participant::with(['scores.details.aspect', 'scores.judge'])
                                   ->where('status', 'performing')
