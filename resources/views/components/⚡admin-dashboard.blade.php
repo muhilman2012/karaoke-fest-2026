@@ -5,11 +5,13 @@ use App\Models\Participant;
 use App\Models\Judge;
 use App\Models\Aspect;
 use App\Models\Score;
-use App\Models\Vote; // Tambahkan ini
+use App\Models\Vote;
+use Illuminate\Support\Facades\Cache;
 
 new class extends Component
 {
     public $activeTab = 'live'; // 'live', 'peserta', 'juri', 'aspek', 'rekap', 'favorit', 'voting'
+    public $voting_is_open = true;
 
     // State untuk Modal Edit
     public $showEditModal = false;
@@ -22,6 +24,19 @@ new class extends Component
     public $formSongTitle = '';
     public $formPasscode = '';
     public $formPercentage = '';
+
+    public function mount()
+    {
+        // Cek status dari Cache saat halaman admin dimuat
+        $this->voting_is_open = Cache::get('voting_is_open', true);
+    }
+
+    public function toggleVoting()
+    {
+        $this->voting_is_open = !$this->voting_is_open;
+        // Simpan status baru secara permanen di Cache
+        Cache::forever('voting_is_open', $this->voting_is_open);
+    }
 
     public function setTab($tab)
     {
@@ -104,7 +119,6 @@ new class extends Component
             'participants' => Participant::with(['scores.details.aspect', 'scores.judge'])->orderBy('order_number')->get(),
             'judges' => Judge::all(),
             'aspects' => Aspect::all(),
-            // Data khusus untuk tab voting
             'votingResults' => Participant::withCount('votes')->orderByDesc('votes_count')->get(),
             'totalVotes' => Vote::count(),
         ];
@@ -112,10 +126,7 @@ new class extends Component
 
     public function setFavorite($id)
     {
-        // Reset semua status favorit terlebih dahulu agar hanya ada 1 juara favorit
         Participant::query()->update(['is_favorite' => false]);
-        
-        // Set peserta yang dipilih menjadi juara favorit
         Participant::where('id', $id)->update(['is_favorite' => true]);
     }
 };
@@ -127,7 +138,6 @@ new class extends Component
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <h1 class="text-3xl font-black text-gray-800">Administrator Panel</h1>
             
-            <!-- Tombol Download Excel -->
             <a href="/admin/export-excel" target="_blank" class="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 transition">
                 📊 Download Rekap Excel (.xlsx)
             </a>
@@ -141,7 +151,6 @@ new class extends Component
             <button wire:click="setTab('juri')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'juri' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">Kelola Juri</button>
             <button wire:click="setTab('aspek')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'aspek' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">Aspek Penilaian</button>
             <button wire:click="setTab('favorit')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'favorit' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">Juara Favorit</button>
-            <!-- Tombol Tab Baru: Hasil Voting -->
             <button wire:click="setTab('voting')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'voting' ? 'bg-pink-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">📊 Hasil Voting</button>
         </div>
 
@@ -196,7 +205,7 @@ new class extends Component
         </div>
         @endif
 
-        <!-- TAB: REKAP NILAI (DETAIL PER JURI & ASPEK) -->
+        <!-- TAB: REKAP NILAI -->
         @if($activeTab === 'rekap')
         <div class="space-y-6">
             @foreach($participants as $p)
@@ -300,17 +309,24 @@ new class extends Component
         </div>
         @endif
 
-        <!-- TAB BARU: HASIL VOTING -->
+        <!-- TAB: HASIL VOTING -->
         @if($activeTab === 'voting')
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-6 overflow-x-auto" wire:poll.5s>
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div>
                     <h2 class="text-xl font-bold text-gray-800">🏆 Rekap Voting Penonton</h2>
                     <p class="text-sm text-gray-500">Halaman ini otomatis diperbarui setiap 5 detik.</p>
                 </div>
-                <div class="bg-pink-50 text-pink-700 px-6 py-2 rounded-xl text-center border border-pink-100">
-                    <span class="text-xs font-bold block uppercase tracking-wider">Total Suara Masuk</span>
-                    <span class="text-3xl font-black">{{ $totalVotes }}</span>
+                <div class="flex items-center gap-4">
+                    <!-- Tombol Buka/Tutup Voting -->
+                    <button wire:click="toggleVoting" class="{{ $voting_is_open ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }} text-white font-black px-6 py-3 rounded-xl shadow transition">
+                        {{ $voting_is_open ? '🛑 TUTUP VOTING' : '✅ BUKA VOTING' }}
+                    </button>
+                    
+                    <div class="bg-pink-50 text-pink-700 px-6 py-2 rounded-xl text-center border border-pink-100">
+                        <span class="text-xs font-bold block uppercase tracking-wider">Total Suara</span>
+                        <span class="text-3xl font-black">{{ $totalVotes }}</span>
+                    </div>
                 </div>
             </div>
             
