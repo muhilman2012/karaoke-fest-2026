@@ -20,17 +20,16 @@ new class extends Component
 
     public function checkVote()
     {
+        // Hanya cek dari Cookie Token
         $token = request()->cookie('voter_token');
-        $ip = request()->ip();
         
-        // Cek apakah ada riwayat vote dari Cookie INI -ATAU- dari IP Address INI
-        $vote = Vote::where('device_token', $token)
-                    ->orWhere('ip_address', $ip)
-                    ->first();
-        
-        if ($vote) {
-            $this->hasVoted = true;
-            $this->votedFor = $vote->participant->name;
+        if ($token) {
+            $vote = Vote::where('device_token', $token)->first();
+            
+            if ($vote) {
+                $this->hasVoted = true;
+                $this->votedFor = $vote->participant->name;
+            }
         }
     }
 
@@ -38,26 +37,24 @@ new class extends Component
     {
         if ($this->hasVoted) return;
 
-        // Ambil token lama, atau buat baru
+        // Ambil token lama, atau buat token baru jika belum ada
         $token = request()->cookie('voter_token');
         if (!$token) {
             $token = (string) Str::uuid();
             Cookie::queue('voter_token', $token, 60 * 24 * 30);
         }
 
-        $ip = request()->ip();
-
-        // Validasi ganda ke database sebelum menyimpan
-        if (Vote::where('device_token', $token)->orWhere('ip_address', $ip)->exists()) {
+        // Validasi HANYA berdasarkan token device (Cookie)
+        if (Vote::where('device_token', $token)->exists()) {
             $this->checkVote();
             return;
         }
 
-        // Simpan Vote
+        // Simpan Vote (IP tetap disimpan sebagai log saja, tapi tidak untuk memblokir)
         Vote::create([
             'participant_id' => $participantId,
             'device_token' => $token,
-            'ip_address' => $ip,
+            'ip_address' => request()->ip(),
         ]);
 
         $this->checkVote();
