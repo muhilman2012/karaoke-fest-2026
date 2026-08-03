@@ -20,7 +20,6 @@ new class extends Component
 
     public function checkVote()
     {
-        // Hanya cek dari Cookie Token
         $token = request()->cookie('voter_token');
         
         if ($token) {
@@ -37,20 +36,17 @@ new class extends Component
     {
         if ($this->hasVoted) return;
 
-        // Ambil token lama, atau buat token baru jika belum ada
         $token = request()->cookie('voter_token');
         if (!$token) {
             $token = (string) Str::uuid();
             Cookie::queue('voter_token', $token, 60 * 24 * 30);
         }
 
-        // Validasi HANYA berdasarkan token device (Cookie)
         if (Vote::where('device_token', $token)->exists()) {
             $this->checkVote();
             return;
         }
 
-        // Simpan Vote (IP tetap disimpan sebagai log saja, tapi tidak untuk memblokir)
         Vote::create([
             'participant_id' => $participantId,
             'device_token' => $token,
@@ -62,10 +58,52 @@ new class extends Component
 };
 ?>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 p-6 flex flex-col items-center">
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 p-6 flex flex-col items-center" x-data="voteHandler()">
     
     <!-- Load SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Alpine.js Logic (Dipisah agar lebih cepat & rapi) -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('voteHandler', () => ({
+                async submitVote(participantId, participantName) {
+                    const result = await Swal.fire({
+                        title: 'Konfirmasi Vote',
+                        text: 'Yakin ingin memberikan vote untuk ' + participantName + '? Pilihan tidak bisa diubah!',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#db2777', 
+                        cancelButtonColor: '#475569',  
+                        confirmButtonText: 'Ya, Berikan Vote!',
+                        cancelButtonText: 'Batal',
+                        background: '#1e293b', 
+                        color: '#ffffff'
+                    });
+
+                    if (result.isConfirmed) {
+                        // 1. Tampilkan Loading
+                        Swal.fire({
+                            title: 'Mengirim...',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            background: '#1e293b', 
+                            color: '#ffffff',
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        // 2. Tunggu Livewire memproses ke server (async)
+                        await this.$wire.castVote(participantId);
+                        
+                        // 3. SEGERA tutup loading pop-up agar UI terasa cepat
+                        Swal.close();
+                    }
+                }
+            }));
+        });
+    </script>
 
     <div class="w-full max-w-2xl mt-8 mb-12 text-center">
         <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-indigo-300 mb-2">VOTING PESERTA FAVORIT</h1>
@@ -87,41 +125,9 @@ new class extends Component
                         <p class="text-indigo-300 text-sm">🎵 {{ $p->song_title ?: 'Lagu Pilihan' }}</p>
                     </div>
                     
-                    <!-- Tombol Vote menggunakan Alpine.js & SweetAlert2 (Dengan Loading) -->
+                    <!-- Tombol Vote menjadi sangat ringkas -->
                     <button type="button" 
-                        x-data 
-                        x-on:click="
-                            Swal.fire({
-                                title: 'Konfirmasi Vote',
-                                text: 'Yakin ingin memberikan vote untuk {{ $p->name }}? Pilihan tidak bisa diubah!',
-                                icon: 'question',
-                                showCancelButton: true,
-                                confirmButtonColor: '#db2777', 
-                                cancelButtonColor: '#475569',  
-                                confirmButtonText: 'Ya, Berikan Vote!',
-                                cancelButtonText: 'Batal',
-                                background: '#1e293b', 
-                                color: '#ffffff'
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    
-                                    // 1. Tampilkan Pop-up Loading agar user tidak klik 2x
-                                    Swal.fire({
-                                        title: 'Mengirim Vote...',
-                                        text: 'Mohon tunggu sebentar',
-                                        allowOutsideClick: false,
-                                        background: '#1e293b', 
-                                        color: '#ffffff',
-                                        didOpen: () => {
-                                            Swal.showLoading();
-                                        }
-                                    });
-
-                                    // 2. Eksekusi Livewire di belakang layar
-                                    $wire.castVote({{ $p->id }});
-                                }
-                            })
-                        " 
+                        x-on:click="submitVote({{ $p->id }}, '{{ addslashes($p->name) }}')" 
                         class="bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95">
                         VOTE
                     </button>
