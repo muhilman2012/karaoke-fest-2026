@@ -5,17 +5,27 @@ use App\Models\Participant;
 use App\Models\Vote;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Cache;
 
 new class extends Component
 {
     public $participants;
     public $hasVoted = false;
     public $votedFor = null;
+    public $voting_is_open = true;
 
     public function mount()
     {
+        $this->voting_is_open = Cache::get('voting_is_open', true);
         $this->participants = Participant::orderBy('order_number')->get();
         $this->checkVote();
+    }
+
+    // Fungsi ini dipanggil otomatis setiap 3 detik oleh halaman penonton
+    // untuk mengecek apakah admin menutup voting secara tiba-tiba
+    public function checkStatus()
+    {
+        $this->voting_is_open = Cache::get('voting_is_open', true);
     }
 
     public function checkVote()
@@ -34,6 +44,8 @@ new class extends Component
 
     public function castVote($participantId)
     {
+        $this->voting_is_open = Cache::get('voting_is_open', true);
+        if (!$this->voting_is_open) return;
         if ($this->hasVoted) return;
 
         $token = request()->cookie('voter_token');
@@ -50,7 +62,7 @@ new class extends Component
         Vote::create([
             'participant_id' => $participantId,
             'device_token' => $token,
-            'ip_address' => request()->ip(),
+            'ip_address' => request()->ip(), // Tetap disimpan tapi tidak dipakai untuk memblokir
         ]);
 
         $this->checkVote();
@@ -58,12 +70,15 @@ new class extends Component
 };
 ?>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 p-6 flex flex-col items-center" x-data="voteHandler()">
+<!-- Tambahkan wire:poll.3s agar halaman penonton mendengarkan instruksi admin setiap 3 detik -->
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 p-6 flex flex-col items-center" 
+     wire:poll.3s="checkStatus" 
+     x-data="voteHandler()">
     
     <!-- Load SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- Alpine.js Logic (Dipisah agar lebih cepat & rapi) -->
+    <!-- Alpine.js Logic (Cepat & Bebas dari klik 2x) -->
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('voteHandler', () => ({
@@ -82,7 +97,6 @@ new class extends Component
                     });
 
                     if (result.isConfirmed) {
-                        // 1. Tampilkan Loading
                         Swal.fire({
                             title: 'Mengirim...',
                             allowOutsideClick: false,
@@ -94,10 +108,8 @@ new class extends Component
                             }
                         });
 
-                        // 2. Tunggu Livewire memproses ke server (async)
                         await this.$wire.castVote(participantId);
                         
-                        // 3. SEGERA tutup loading pop-up agar UI terasa cepat
                         Swal.close();
                     }
                 }
@@ -110,12 +122,23 @@ new class extends Component
         <p class="text-indigo-200">Dukung peserta jagoanmu! (1 Perangkat hanya bisa memilih 1 kali)</p>
     </div>
 
-    @if($hasVoted)
+    <!-- Pengecekan 1: Jika admin menekan Tutup Voting -->
+    @if(!$voting_is_open)
+        <div class="w-full max-w-2xl bg-red-900/40 backdrop-blur-md border border-red-500/50 rounded-3xl p-10 text-center shadow-2xl animate-fade-in-up">
+            <div class="text-6xl mb-4">🛑</div>
+            <h2 class="text-3xl font-black text-white mb-2">Voting Telah Ditutup!</h2>
+            <p class="text-xl text-red-200">Terima kasih atas antusiasmenya. Sesi voting penonton sudah berakhir dan hasil sedang dihitung.</p>
+        </div>
+        
+    <!-- Pengecekan 2: Jika penonton sudah vote -->
+    @elseif($hasVoted)
         <div class="w-full max-w-2xl bg-white/10 backdrop-blur-md border border-green-400/50 rounded-3xl p-10 text-center shadow-2xl animate-fade-in-up">
             <div class="text-6xl mb-4">🎉</div>
             <h2 class="text-3xl font-black text-white mb-2">Terima Kasih!</h2>
             <p class="text-xl text-green-200">Voting Anda untuk <span class="font-bold text-white bg-green-600 px-3 py-1 rounded-lg mx-1">{{ $votedFor }}</span> telah masuk ke dalam sistem.</p>
         </div>
+        
+    <!-- Pengecekan 3: Tampilan Normal -->
     @else
         <div class="w-full max-w-2xl grid grid-cols-1 gap-4">
             @foreach($participants as $p)
@@ -125,7 +148,6 @@ new class extends Component
                         <p class="text-indigo-300 text-sm">🎵 {{ $p->song_title ?: 'Lagu Pilihan' }}</p>
                     </div>
                     
-                    <!-- Tombol Vote menjadi sangat ringkas -->
                     <button type="button" 
                         x-on:click="submitVote({{ $p->id }}, '{{ addslashes($p->name) }}')" 
                         class="bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95">
