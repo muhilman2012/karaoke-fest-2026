@@ -87,7 +87,7 @@ new class extends Component
                         <p class="text-indigo-300 text-sm">🎵 {{ $p->song_title ?: 'Lagu Pilihan' }}</p>
                     </div>
                     
-                    <!-- Tombol Vote menggunakan Alpine.js & SweetAlert2 -->
+                    <!-- Tombol Vote menggunakan Alpine.js & SweetAlert2 (Dengan Loading) -->
                     <button type="button" 
                         x-data 
                         x-on:click="
@@ -96,15 +96,29 @@ new class extends Component
                                 text: 'Yakin ingin memberikan vote untuk {{ $p->name }}? Pilihan tidak bisa diubah!',
                                 icon: 'question',
                                 showCancelButton: true,
-                                confirmButtonColor: '#db2777', // warna pink-600 tailwind
-                                cancelButtonColor: '#475569',  // warna slate-600 tailwind
+                                confirmButtonColor: '#db2777', 
+                                cancelButtonColor: '#475569',  
                                 confirmButtonText: 'Ya, Berikan Vote!',
                                 cancelButtonText: 'Batal',
-                                background: '#1e293b', // warna slate-800
+                                background: '#1e293b', 
                                 color: '#ffffff'
                             }).then((result) => {
                                 if (result.isConfirmed) {
-                                    $wire.castVote({{ $p->id }})
+                                    
+                                    // 1. Tampilkan Pop-up Loading agar user tidak klik 2x
+                                    Swal.fire({
+                                        title: 'Mengirim Vote...',
+                                        text: 'Mohon tunggu sebentar',
+                                        allowOutsideClick: false,
+                                        background: '#1e293b', 
+                                        color: '#ffffff',
+                                        didOpen: () => {
+                                            Swal.showLoading();
+                                        }
+                                    });
+
+                                    // 2. Eksekusi Livewire di belakang layar
+                                    $wire.castVote({{ $p->id }});
                                 }
                             })
                         " 

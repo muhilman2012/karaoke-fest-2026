@@ -41,9 +41,9 @@ class DatabaseSeeder extends Seeder
 
         // 2. Seeder Juri
         $judges = [
-            ['name' => 'Alfredo Agustinus', 'passcode' => '1111'],
-            ['name' => 'Abdul and The Coffee Theory', 'passcode' => '2222'],
-            ['name' => 'Aldi Taher', 'passcode' => '3333'],
+            ['name' => 'Alfredo Agustinus', 'passcode' => '3849'],
+            ['name' => 'Abdul and The Coffee Theory', 'passcode' => '7364'],
+            ['name' => 'Rifky Kurnia', 'passcode' => '8291'],
         ];
         
         foreach ($judges as $judge) {
@@ -59,7 +59,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Biro Umum', 'song' => 'Begitu Indah'],
             ['name' => 'Deputi 2', 'song' => 'Ku Bahagia'],
             ['name' => 'Deputi 3', 'song' => 'Pacarku Superstar'],
-            ['name' => 'Outsourcing', 'song' => ''], // Dikosongkan sesuai daftar
+            ['name' => 'Outsourcing', 'song' => 'Batal Kawin'],
             ['name' => 'Biro PMI', 'song' => 'Hip Hip Hura'],
             ['name' => 'Tim Sespri', 'song' => 'Kamu Ngga Sendirian'],
             ['name' => 'Biro TUSDM', 'song' => 'Galih dan Ratna'],
