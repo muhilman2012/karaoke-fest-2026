@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\Cache;
 
 new class extends Component
 {
-    public $activeTab = 'live'; // 'live', 'peserta', 'juri', 'aspek', 'rekap', 'favorit', 'voting'
+    public $activeTab = 'live'; 
     public $voting_is_open = true;
 
-    // State untuk Modal Edit
+    // State untuk Modal Edit / Create
     public $showEditModal = false;
     public $editType = ''; 
     public $editId = null;
@@ -27,14 +27,12 @@ new class extends Component
 
     public function mount()
     {
-        // Cek status dari Cache saat halaman admin dimuat
         $this->voting_is_open = Cache::get('voting_is_open', true);
     }
 
     public function toggleVoting()
     {
         $this->voting_is_open = !$this->voting_is_open;
-        // Simpan status baru secara permanen di Cache
         Cache::forever('voting_is_open', $this->voting_is_open);
     }
 
@@ -61,8 +59,17 @@ new class extends Component
     public function deleteJudge($id) { Judge::find($id)->delete(); }
     public function deleteAspect($id) { Aspect::find($id)->delete(); }
 
+    public function openCreate($type)
+    {
+        $this->reset(['formName', 'formOrder', 'formSongTitle', 'formPasscode', 'formPercentage']);
+        $this->editType = $type;
+        $this->editId = null; 
+        $this->showEditModal = true;
+    }
+
     public function openEdit($type, $id)
     {
+        $this->reset(['formName', 'formOrder', 'formSongTitle', 'formPasscode', 'formPercentage']);
         $this->editType = $type;
         $this->editId = $id;
         $this->showEditModal = true;
@@ -83,26 +90,58 @@ new class extends Component
         }
     }
 
-    public function updateData()
+    // Fungsi tunggal untuk menangani INSERT (Tambah) dan UPDATE (Edit)
+    public function saveData() 
     {
         if ($this->editType === 'peserta') {
-            Participant::where('id', $this->editId)->update([
+            $data = [
                 'name' => $this->formName, 
-                'order_number' => $this->formOrder,
-                'song_title' => $this->formSongTitle
-            ]);
+                'order_number' => (int) $this->formOrder,
+                'song_title' => $this->formSongTitle ?: '-'
+            ];
+            
+            if ($this->editId) {
+                Participant::where('id', $this->editId)->update($data);
+            } else {
+                $data['status'] = 'waiting'; 
+                Participant::create($data);
+            }
         } elseif ($this->editType === 'juri') {
-            Judge::where('id', $this->editId)->update([
+            $data = [
                 'name' => $this->formName, 
                 'passcode' => $this->formPasscode
-            ]);
+            ];
+            
+            if ($this->editId) {
+                Judge::where('id', $this->editId)->update($data);
+            } else {
+                Judge::create($data);
+            }
         } elseif ($this->editType === 'aspek') {
-            Aspect::where('id', $this->editId)->update([
+            $data = [
                 'name' => $this->formName, 
-                'percentage' => $this->formPercentage
-            ]);
+                'percentage' => (int) $this->formPercentage,
+                'description' => '-'
+            ];
+            
+            if ($this->editId) {
+                Aspect::where('id', $this->editId)->update($data);
+            } else {
+                Aspect::create($data);
+            }
         }
+        
+        // Simpan tipe data apa yang baru saja diedit untuk dimunculkan di notif
+        $tipeData = ucfirst($this->editType); 
+        
         $this->closeModal();
+
+        // Mengirim instruksi ke browser (JavaScript) untuk memunculkan SweetAlert
+        $this->dispatch('swal:success', [
+            'title' => 'Berhasil!',
+            'text' => "Data {$tipeData} berhasil disimpan.",
+            'icon' => 'success'
+        ]);
     }
 
     public function closeModal()
@@ -257,7 +296,10 @@ new class extends Component
         <!-- TAB: KELOLA PESERTA -->
         @if($activeTab === 'peserta')
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-6 overflow-x-auto">
-            <h2 class="text-xl font-bold mb-4">Daftar Peserta & Lagu</h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Daftar Peserta & Lagu</h2>
+                <button wire:click="openCreate('peserta')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold shadow text-sm transition">+ Tambah Peserta</button>
+            </div>
             <table class="w-full text-left border-collapse mt-4 min-w-max">
                 <tr class="bg-gray-100"><th class="p-3">No Urut</th><th class="p-3">Nama Tim</th><th class="p-3">Judul Lagu</th><th class="p-3">Aksi</th></tr>
                 @foreach($participants as $p)
@@ -278,7 +320,10 @@ new class extends Component
         <!-- TAB: KELOLA JURI -->
         @if($activeTab === 'juri')
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-6 overflow-x-auto">
-            <h2 class="text-xl font-bold mb-4">Daftar Juri</h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Daftar Juri</h2>
+                <button wire:click="openCreate('juri')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold shadow text-sm transition">+ Tambah Juri</button>
+            </div>
             <table class="w-full text-left border-collapse mt-4 min-w-max">
                 <tr class="bg-gray-100"><th class="p-3">Nama Juri</th><th class="p-3">Passcode PIN</th><th class="p-3">Aksi</th></tr>
                 @foreach($judges as $j)
@@ -295,7 +340,10 @@ new class extends Component
         <!-- TAB: KELOLA ASPEK -->
         @if($activeTab === 'aspek')
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-6 overflow-x-auto">
-            <h2 class="text-xl font-bold mb-4">Kriteria Penilaian</h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Kriteria Penilaian</h2>
+                <button wire:click="openCreate('aspek')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold shadow text-sm transition">+ Tambah Aspek</button>
+            </div>
             <table class="w-full text-left border-collapse mt-4 min-w-max">
                 <tr class="bg-gray-100"><th class="p-3">Nama Aspek</th><th class="p-3">Bobot Persentase</th><th class="p-3">Aksi</th></tr>
                 @foreach($aspects as $a)
@@ -391,15 +439,15 @@ new class extends Component
         </div>
         @endif
 
-        <!-- MODAL EDIT POP-UP -->
+        <!-- MODAL EDIT / CREATE POP-UP -->
         @if($showEditModal)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
                 <h2 class="text-2xl font-black text-gray-800 mb-6">
-                    Edit {{ ucfirst($editType) }}
+                    {{ $editId ? 'Edit' : 'Tambah' }} {{ ucfirst($editType) }}
                 </h2>
                 
-                <form wire:submit.prevent="updateData" class="space-y-4">
+                <form wire:submit.prevent="saveData" class="space-y-4">
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Nama</label>
                         <input type="text" wire:model="formName" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500" required>
@@ -412,7 +460,7 @@ new class extends Component
                             <input type="number" wire:model="formOrder" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-indigo-500" required>
                         </div>
                         <div class="col-span-2">
-                            <label class="block font-bold text-gray-700 mb-1">Judul Lagu</label>
+                            <label class="block font-bold text-gray-700 mb-1">Judul Lagu / Tema</label>
                             <input type="text" wire:model="formSongTitle" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-indigo-500">
                         </div>
                     </div>
@@ -440,6 +488,22 @@ new class extends Component
             </div>
         </div>
         @endif
+        
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            window.addEventListener('swal:success', event => {
+                const data = event.detail[0] ? event.detail[0] : event.detail;
+                
+                Swal.fire({
+                    title: data.title,
+                    text: data.text,
+                    icon: data.icon,
+                    confirmButtonColor: '#4f46e5',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            });
+        </script>
         
     </div>
 </div>

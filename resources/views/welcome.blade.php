@@ -16,7 +16,7 @@
                 Selamat Datang
             </span>
             <h1 class="text-5xl md:text-7xl font-black mt-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-400">
-                SETWAPRES KARAOKE FEST 2026 🎤
+                LOMBA DEFILE SETWAPRES 2026
             </h1>
             <p class="text-gray-400 text-lg mt-3">Silakan pilih menu navigasi di bawah ini sesuai peran Anda.</p>
         </div>
