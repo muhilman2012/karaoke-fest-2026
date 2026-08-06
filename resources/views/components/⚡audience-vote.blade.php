@@ -21,8 +21,6 @@ new class extends Component
         $this->checkVote();
     }
 
-    // Fungsi ini dipanggil otomatis setiap 3 detik oleh halaman penonton
-    // untuk mengecek apakah admin menutup voting secara tiba-tiba
     public function checkStatus()
     {
         $this->voting_is_open = Cache::get('voting_is_open', true);
@@ -62,7 +60,7 @@ new class extends Component
         Vote::create([
             'participant_id' => $participantId,
             'device_token' => $token,
-            'ip_address' => request()->ip(), // Tetap disimpan tapi tidak dipakai untuk memblokir
+            'ip_address' => request()->ip(),
         ]);
 
         $this->checkVote();
@@ -70,7 +68,6 @@ new class extends Component
 };
 ?>
 
-<!-- Tambahkan wire:poll.3s agar halaman penonton mendengarkan instruksi admin setiap 3 detik -->
 <div class="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 p-6 flex flex-col items-center" 
      wire:poll.3s="checkStatus" 
      x-data="voteHandler()">
@@ -122,7 +119,6 @@ new class extends Component
         <p class="text-indigo-200">Dukung peserta jagoanmu! (1 Perangkat hanya bisa memilih 1 kali)</p>
     </div>
 
-    <!-- Pengecekan 1: Jika admin menekan Tutup Voting -->
     @if(!$voting_is_open)
         <div class="w-full max-w-2xl bg-red-900/40 backdrop-blur-md border border-red-500/50 rounded-3xl p-10 text-center shadow-2xl animate-fade-in-up">
             <div class="text-6xl mb-4">🛑</div>
@@ -130,7 +126,6 @@ new class extends Component
             <p class="text-xl text-red-200">Terima kasih atas antusiasmenya. Sesi voting penonton sudah berakhir dan hasil sedang dihitung.</p>
         </div>
         
-    <!-- Pengecekan 2: Jika penonton sudah vote -->
     @elseif($hasVoted)
         <div class="w-full max-w-2xl bg-white/10 backdrop-blur-md border border-green-400/50 rounded-3xl p-10 text-center shadow-2xl animate-fade-in-up">
             <div class="text-6xl mb-4">🎉</div>
@@ -138,7 +133,6 @@ new class extends Component
             <p class="text-xl text-green-200">Voting Anda untuk <span class="font-bold text-white bg-green-600 px-3 py-1 rounded-lg mx-1">{{ $votedFor }}</span> telah masuk ke dalam sistem.</p>
         </div>
         
-    <!-- Pengecekan 3: Tampilan Normal -->
     @else
         <div class="w-full max-w-2xl grid grid-cols-1 gap-4">
             @foreach($participants as $p)

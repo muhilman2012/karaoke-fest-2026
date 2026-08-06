@@ -51,6 +51,30 @@ Route::get('/admin/votes', function () {
     return view('admin-votes'); 
 });
 
+// 9. Modul Spinwheel
+Route::get('/admin/spinwheel', function () {
+    if (!session('is_admin')) return redirect('/admin/login');
+    return view('spinwheel-admin-page'); 
+});
+
+Route::get('/display/spinwheel', function () {
+    return view('spinwheel-display-page');
+});
+
+// ROUTE BARU: Halaman Daftar Pemenang
+Route::get('/display/winners', function () {
+    return view('spinwheel-winners-page');
+});
+
+// Route untuk Live Leaderboard
+Route::get('/display/leaderboard', function () {
+    return view('leaderboard-page');
+});
+
+Route::get('/display/tradisional', function () {
+    return view('traditional-page');
+});
+
 Route::get('/api/live-score', function () {
     $activeParticipant = Participant::with(['scores.details.aspect', 'scores.judge'])
                                   ->where('status', 'performing')

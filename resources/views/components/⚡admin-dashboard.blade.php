@@ -18,16 +18,32 @@ new class extends Component
     public $editType = ''; 
     public $editId = null;
 
-    // Field Form
     public $formName = '';
     public $formOrder = '';
     public $formSongTitle = '';
     public $formPasscode = '';
     public $formPercentage = '';
 
+    public $traditionalWinners = [];
+
     public function mount()
     {
         $this->voting_is_open = Cache::get('voting_is_open', true);
+
+        $defaultGames = [
+            'estafet_bola' => ['name' => 'Estafet Bola', 'r1' => '', 'r2' => '', 'r3' => ''],
+            'estafet_sarung' => ['name' => 'Estafet Sarung', 'r1' => '', 'r2' => '', 'r3' => ''],
+            'estafet_kelereng' => ['name' => 'Estafet Kelereng Sarung', 'r1' => '', 'r2' => '', 'r3' => ''],
+            'paku_botol' => ['name' => 'Paku Dalam Botol', 'r1' => '', 'r2' => '', 'r3' => ''],
+            'estafet_air' => ['name' => 'Estafet Air', 'r1' => '', 'r2' => '', 'r3' => ''],
+        ];
+        $this->traditionalWinners = Cache::get('traditional_winners', $defaultGames);
+    }
+
+    public function saveTraditional()
+    {
+        Cache::forever('traditional_winners', $this->traditionalWinners);
+        $this->dispatch('swal:success', ['title' => 'Tersimpan!', 'text' => 'Pemenang Lomba Tradisional berhasil di-update ke layar.', 'icon' => 'success']);
     }
 
     public function toggleVoting()
@@ -90,7 +106,6 @@ new class extends Component
         }
     }
 
-    // Fungsi tunggal untuk menangani INSERT (Tambah) dan UPDATE (Edit)
     public function saveData() 
     {
         if ($this->editType === 'peserta') {
@@ -131,12 +146,9 @@ new class extends Component
             }
         }
         
-        // Simpan tipe data apa yang baru saja diedit untuk dimunculkan di notif
         $tipeData = ucfirst($this->editType); 
-        
         $this->closeModal();
 
-        // Mengirim instruksi ke browser (JavaScript) untuk memunculkan SweetAlert
         $this->dispatch('swal:success', [
             'title' => 'Berhasil!',
             'text' => "Data {$tipeData} berhasil disimpan.",
@@ -177,12 +189,18 @@ new class extends Component
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <h1 class="text-3xl font-black text-gray-800">Administrator Panel</h1>
             
-            <a href="/admin/export-excel" target="_blank" class="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 transition">
-                📊 Download Rekap Excel (.xlsx)
-            </a>
+            <div class="flex items-center gap-3">
+                <a href="/admin/spinwheel" target="_blank" class="bg-gradient-to-r from-pink-500 to-indigo-600 hover:from-pink-600 hover:to-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 transition transform hover:scale-105">
+                    🎰 Buka Admin Spinwheel
+                </a>
+                
+                <a href="/admin/export-excel" target="_blank" class="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 transition">
+                    📊 Download Rekap Excel (.xlsx)
+                </a>
+            </div>
         </div>
 
-        <!-- Sistem Navigasi Tab -->
+        <!-- Sistem Navigasi Tab Utama -->
         <div class="flex space-x-2 mb-6 bg-white p-2 rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
             <button wire:click="setTab('live')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'live' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">Live Control</button>
             <button wire:click="setTab('rekap')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'rekap' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">Rekap Nilai</button>
@@ -191,6 +209,7 @@ new class extends Component
             <button wire:click="setTab('aspek')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'aspek' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">Aspek Penilaian</button>
             <button wire:click="setTab('favorit')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'favorit' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">Juara Favorit</button>
             <button wire:click="setTab('voting')" class="whitespace-nowrap px-6 py-3 rounded-lg font-bold transition {{ $activeTab === 'voting' ? 'bg-pink-600 text-white' : 'text-gray-500 hover:bg-gray-100' }}">📊 Hasil Voting</button>
+            <button wire:click="setTab('tradisional')" class="whitespace-nowrap px-6 py-3 rounded-lg font-black transition {{ $activeTab === 'tradisional' ? 'bg-yellow-500 text-gray-900 shadow-md' : 'text-yellow-600 hover:bg-yellow-50 border border-yellow-200' }}">🎯 Lomba Tradisional</button>
         </div>
 
         <!-- TAB: LIVE CONTROL -->
@@ -366,7 +385,6 @@ new class extends Component
                     <p class="text-sm text-gray-500">Halaman ini otomatis diperbarui setiap 5 detik.</p>
                 </div>
                 <div class="flex items-center gap-4">
-                    <!-- Tombol Buka/Tutup Voting -->
                     <button wire:click="toggleVoting" class="{{ $voting_is_open ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }} text-white font-black px-6 py-3 rounded-xl shadow transition">
                         {{ $voting_is_open ? '🛑 TUTUP VOTING' : '✅ BUKA VOTING' }}
                     </button>
@@ -436,6 +454,50 @@ new class extends Component
                 </tr>
                 @endforeach
             </table>
+        </div>
+        @endif
+
+        <!-- TAB: LOMBA TRADISIONAL -->
+        @if($activeTab === 'tradisional')
+        <div class="space-y-6 animate-fade-in-up">
+            
+            <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
+                <div>
+                    <h2 class="text-3xl font-black text-yellow-400 mb-2">Papan Pemenang Lomba Tradisional</h2>
+                    <p class="text-slate-300">Ketik nama pemenang di bawah. Data otomatis terkirim ke layar (Proyektor) setelah Anda klik "Simpan & Tampilkan".</p>
+                </div>
+                <button wire:click="saveTraditional" class="shrink-0 bg-gradient-to-r from-yellow-400 to-orange-500 text-slate-900 font-black text-xl px-8 py-4 rounded-2xl shadow-[0_0_20px_rgba(250,204,21,0.4)] hover:scale-105 transition transform border-2 border-yellow-200 w-full md:w-auto">
+                    💾 Simpan & Tampilkan
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                @foreach($traditionalWinners as $key => $game)
+                <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100 border-t-4 border-t-yellow-500">
+                    <h3 class="text-xl font-black text-gray-800 mb-6 uppercase tracking-wider">{{ $game['name'] }}</h3>
+                    
+                    <div class="space-y-4">
+                        <!-- Juara 1 -->
+                        <div class="flex items-center gap-4">
+                            <div class="shrink-0 w-12 h-12 bg-gradient-to-br from-yellow-300 to-yellow-600 font-black flex items-center justify-center rounded-xl text-slate-900 shadow-md text-xl">1</div>
+                            <input type="text" wire:model="traditionalWinners.{{ $key }}.r1" class="flex-1 w-full border-2 border-yellow-200 p-3 rounded-xl bg-yellow-50 focus:ring-0 focus:border-yellow-500 font-bold text-gray-800 text-lg transition" placeholder="Nama Juara 1">
+                        </div>
+                        
+                        <!-- Juara 2 -->
+                        <div class="flex items-center gap-4">
+                            <div class="shrink-0 w-12 h-12 bg-gradient-to-br from-slate-300 to-slate-500 font-black flex items-center justify-center rounded-xl text-slate-900 shadow-md text-xl">2</div>
+                            <input type="text" wire:model="traditionalWinners.{{ $key }}.r2" class="flex-1 w-full border-2 border-slate-200 p-3 rounded-xl bg-slate-50 focus:ring-0 focus:border-slate-500 font-bold text-gray-800 text-lg transition" placeholder="Nama Juara 2">
+                        </div>
+                        
+                        <!-- Juara 3 -->
+                        <div class="flex items-center gap-4">
+                            <div class="shrink-0 w-12 h-12 bg-gradient-to-br from-amber-600 to-orange-800 font-black flex items-center justify-center rounded-xl text-white shadow-md text-xl">3</div>
+                            <input type="text" wire:model="traditionalWinners.{{ $key }}.r3" class="flex-1 w-full border-2 border-orange-200 p-3 rounded-xl bg-orange-50 focus:ring-0 focus:border-orange-500 font-bold text-gray-800 text-lg transition" placeholder="Nama Juara 3">
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
         </div>
         @endif
 

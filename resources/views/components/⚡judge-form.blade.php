@@ -14,7 +14,6 @@ new class extends Component
     public $aspectScores = []; 
     public $is_locked = false;
     
-    // Properti Baru untuk Mode Edit & List
     public $show_participant_list = false;
     public $is_editing_mode = false;
 
@@ -48,7 +47,6 @@ new class extends Component
 
     public function checkParticipant()
     {
-        // HENTIKAN auto-update jika juri sedang buka list peserta atau sedang mode edit
         if ($this->show_participant_list || $this->is_editing_mode) {
             return;
         }
@@ -68,33 +66,29 @@ new class extends Component
         }
     }
 
-    // Fungsi Buka/Tutup List Peserta
     public function toggleParticipantList()
     {
         $this->show_participant_list = !$this->show_participant_list;
         
-        // Jika list ditutup dan tidak sedang mode edit, kembalikan ke panggung live
         if (!$this->show_participant_list && !$this->is_editing_mode) {
             $this->backToLive();
         }
     }
 
-    // Fungsi Pilih Peserta dari List untuk Diedit
     public function editParticipant($id)
     {
         $this->is_editing_mode = true;
-        $this->show_participant_list = false; // Tutup list
-        $this->participant_id = $id;          // Ubah target peserta
-        $this->loadDraft();                   // Muat nilainya
+        $this->show_participant_list = false;
+        $this->participant_id = $id;
+        $this->loadDraft();
     }
 
-    // Fungsi Kembali Memantau Panggung Live
     public function backToLive()
     {
         $this->is_editing_mode = false;
         $this->show_participant_list = false;
-        $this->participant_id = null; // Force reset target
-        $this->checkParticipant();    // Cek ulang siapa yang di panggung
+        $this->participant_id = null;
+        $this->checkParticipant();
     }
 
     public function loadDraft()
@@ -175,11 +169,9 @@ new class extends Component
 
     public function with(): array
     {
-        // current_participant adalah peserta yang sedang tampil DI LAYAR JURI (bisa live, bisa edit)
         $current_participant = Participant::find($this->participant_id);
         $judge = Judge::find($this->judge_id);
         
-        // Data untuk List Peserta
         $all_participants = Participant::orderBy('order_number')->get();
         $my_scores = Score::where('judge_id', $this->judge_id)->get()->keyBy('participant_id');
 
@@ -196,14 +188,12 @@ new class extends Component
 
 <div class="min-h-screen bg-gray-100 flex flex-col items-center p-4" wire:poll.2s="checkParticipant">
     
-    <!-- Top Nav -->
     <div class="w-full max-w-4xl flex flex-col md:flex-row justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm gap-4">
         <div class="font-bold text-gray-500">
             Juri: <span class="text-indigo-600">{{ $judgeName }}</span>
         </div>
         
         <div class="flex gap-4">
-            <!-- Tombol Buka List Peserta -->
             <button wire:click="toggleParticipantList" class="bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl hover:bg-indigo-200 transition">
                 @if($show_participant_list) Tutup Daftar @else 📋 Daftar Peserta @endif
             </button>
@@ -212,7 +202,6 @@ new class extends Component
     </div>
 
     @if($show_participant_list)
-        <!-- TAMPILAN LIST PESERTA -->
         <div class="w-full max-w-4xl bg-white rounded-3xl shadow-xl overflow-hidden p-8">
             <h2 class="text-2xl font-black text-gray-800 mb-6">Daftar Seluruh Peserta</h2>
             
@@ -250,8 +239,6 @@ new class extends Component
         </div>
 
     @else
-        <!-- TAMPILAN FORM PENILAIAN -->
-
         @if($is_editing_mode)
             <!-- Banner Mode Edit -->
             <div class="w-full max-w-4xl bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4 rounded-r-xl flex justify-between items-center shadow-sm">

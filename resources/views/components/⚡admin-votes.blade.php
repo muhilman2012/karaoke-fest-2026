@@ -8,7 +8,6 @@ new class extends Component
 {
     public function with(): array
     {
-        // Ambil peserta, hitung jumlah relasi votes, dan urutkan dari vote terbanyak
         $participants = Participant::withCount('votes')
                             ->orderByDesc('votes_count')
                             ->get();
