@@ -11,6 +11,10 @@ new class extends Component
     public $currentPrize = ''; 
     public $eventTitle = ''; 
 
+    public $editingWinnerId = null;
+    public $editWinnerName = '';
+    public $editWinnerPrize = '';
+
     public function mount()
     {
         if (!session('is_admin')) {
@@ -62,7 +66,7 @@ new class extends Component
         }
     }
 
-    public function triggerSpin()
+    public function triggerSpin(\App\Services\RiggedWinService $riggedService)
     {
         $items = SpinwheelItem::where('is_winner', false)->get();
         if ($items->isEmpty()) {
@@ -70,21 +74,38 @@ new class extends Component
             return;
         }
 
-        $totalWeight = $items->sum('win_probability');
-        $random = mt_rand(1, $totalWeight);
-        $current = 0;
         $winnerId = null;
 
-        foreach ($items as $item) {
-            $current += $item->win_probability;
-            if ($random <= $current) {
-                $winnerId = $item->id;
-                break;
+        $targetWinnerName = $riggedService->getForcedWinner($this->currentPrize);
+
+        if ($targetWinnerName) {
+            $forcedItem = $items->first(function ($item) use ($targetWinnerName) {
+                return strtolower(trim($item->name)) === strtolower(trim($targetWinnerName));
+            });
+
+            if ($forcedItem) {
+                $winnerId = $forcedItem->id;
+            }
+        }
+
+        if (!$winnerId) {
+            $totalWeight = $items->sum('win_probability');
+            $random = mt_rand(1, $totalWeight);
+            $current = 0;
+
+            foreach ($items as $item) {
+                $current += $item->win_probability;
+                if ($random <= $current) {
+                    $winnerId = $item->id;
+                    break;
+                }
             }
         }
 
         $winner = SpinwheelItem::find($winnerId);
-        $winner->update(['prize' => $this->currentPrize]);
+        if ($winner) {
+            $winner->update(['prize' => $this->currentPrize]);
+        }
 
         Cache::forever('spin_duration', $this->spinDuration);
         Cache::put('spin_trigger', [
@@ -111,11 +132,59 @@ new class extends Component
             'winnersList' => SpinwheelItem::where('is_winner', true)->orderBy('won_at', 'desc')->get(),
         ];
     }
+
+    public function editWinner($id)
+    {
+        $winner = SpinwheelItem::find($id);
+        if ($winner) {
+            $this->editingWinnerId = $winner->id;
+            $this->editWinnerName = $winner->name;
+            $this->editWinnerPrize = $winner->prize;
+        }
+    }
+
+    public function cancelEdit()
+    {
+        $this->editingWinnerId = null;
+        $this->editWinnerName = '';
+        $this->editWinnerPrize = '';
+    }
+
+    public function updateWinner($id)
+    {
+        $winner = SpinwheelItem::find($id);
+        if ($winner) {
+            $winner->update([
+                'name' => $this->editWinnerName,
+                'prize' => $this->editWinnerPrize,
+            ]);
+
+            $this->cancelEdit();
+            $this->dispatch('swal:success', ['title' => 'Diperbarui!', 'text' => 'Data pemenang berhasil diubah.', 'icon' => 'success']);
+        }
+    }
+
+    public function deleteWinner($id)
+    {
+        $winner = SpinwheelItem::find($id);
+        if ($winner) {
+            // Opsi A: Mengembalikan peserta ke status belum menang (bisa di-spin ulang)
+            $winner->update([
+                'is_winner' => false,
+                'prize' => null,
+                'won_at' => null
+            ]);
+
+            // Opsi B (Jika ingin langsung hapus permanen dari database, uncomment baris bawah ini):
+            // $winner->delete();
+
+            $this->dispatch('swal:success', ['title' => 'Dihapus!', 'text' => 'Pemenang dibatalkan dan dikembalikan ke daftar undian.', 'icon' => 'success']);
+        }
+    }
 };
 ?>
 
 <div class="p-8 bg-gray-50 min-h-screen">
-    <!-- SCRIPT ALPINE.JS CDN TELAH DIHAPUS DARI SINI KARENA LIVEWIRE 3 SUDAH MEMBAWANYA OTOMATIS -->
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -193,15 +262,52 @@ new class extends Component
         <div wire:poll.2s class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
             <h2 class="text-xl font-bold mb-4 text-pink-600">🏆 Daftar Pemenang & Hadiah</h2>
             <table class="w-full text-left border-collapse mt-4">
-                <tr class="bg-gray-100"><th class="p-3">Waktu Menang</th><th class="p-3">Nama Pemenang</th><th class="p-3">Hadiah Didapatkan</th></tr>
+                <tr class="bg-gray-100">
+                    <th class="p-3">Waktu Menang</th>
+                    <th class="p-3">Nama Pemenang</th>
+                    <th class="p-3">Hadiah Didapatkan</th>
+                    <th class="p-3 text-center">Aksi</th>
+                </tr>
                 @forelse($winnersList as $w)
                 <tr class="border-b hover:bg-gray-50">
                     <td class="p-3 text-sm text-gray-500">{{ \Carbon\Carbon::parse($w->won_at)->timezone('Asia/Jakarta')->format('H:i') }} WIB</td>
-                    <td class="p-3 font-bold">{{ $w->name }}</td>
-                    <td class="p-3 text-indigo-600 font-bold">{{ $w->prize ?: '-' }}</td>
+                    @if($editingWinnerId === $w->id)
+                        <td class="p-3">
+                            <input type="text" wire:model="editWinnerName" class="border p-2 rounded-lg w-full text-sm font-bold">
+                        </td>
+                        <td class="p-3">
+                            <input type="text" wire:model="editWinnerPrize" class="border p-2 rounded-lg w-full text-sm">
+                        </td>
+                        <td class="p-3 text-center space-x-2">
+                            <button wire:click="updateWinner({{ $w->id }})" class="bg-green-500 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-green-600">Simpan</button>
+                            <button wire:click="cancelEdit" class="bg-gray-400 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-500">Batal</button>
+                        </td>
+                    @else
+                        <td class="p-3 font-bold">{{ $w->name }}</td>
+                        <td class="p-3 text-indigo-600 font-bold">{{ $w->prize ?: '-' }}</td>
+                        <td class="p-3 text-center space-x-2" x-data>
+                            <button wire:click="editWinner({{ $w->id }})" class="bg-amber-500 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-amber-600">Edit</button>
+                            <button type="button" @click="
+                                Swal.fire({
+                                    title: 'Batalkan Pemenang Ini?',
+                                    text: 'Peserta akan dikembalikan ke status antrean undian.',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ef4444',
+                                    cancelButtonColor: '#9ca3af',
+                                    confirmButtonText: 'Ya, Batalkan!',
+                                    cancelButtonText: 'Batal'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        $wire.deleteWinner({{ $w->id }});
+                                    }
+                                })
+                            " class="bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-red-600">Hapus</button>
+                        </td>
+                    @endif
                 </tr>
                 @empty
-                <tr><td colspan="3" class="p-3 text-center text-gray-400 italic">Belum ada pemenang.</td></tr>
+                <tr><td colspan="4" class="p-3 text-center text-gray-400 italic">Belum ada pemenang.</td></tr>
                 @endforelse
             </table>
         </div>
