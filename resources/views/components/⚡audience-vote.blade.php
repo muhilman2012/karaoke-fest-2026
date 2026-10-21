@@ -24,6 +24,7 @@ new class extends Component
     public function checkStatus()
     {
         $this->voting_is_open = Cache::get('voting_is_open', true);
+        $this->participants = Participant::orderBy('order_number')->get();
     }
 
     public function checkVote()
@@ -116,7 +117,7 @@ new class extends Component
 
     <div class="w-full max-w-2xl mt-8 mb-12 text-center">
         <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-indigo-300 mb-2">VOTING PESERTA FAVORIT</h1>
-        <p class="text-indigo-200">Dukung peserta jagoanmu! (1 Perangkat hanya bisa memilih 1 kali)</p>
+        <p class="text-indigo-200">KORPRI Musical Challenge 2026 • Dukung peserta jagoanmu! (1 Perangkat hanya bisa memilih 1 kali)</p>
     </div>
 
     @if(!$voting_is_open)

@@ -180,6 +180,59 @@ new class extends Component
         Participant::query()->update(['is_favorite' => false]);
         Participant::where('id', $id)->update(['is_favorite' => true]);
     }
+
+    // Reset Total Data Lomba (Dengan Otoritas Password)
+    public function resetAllData($password)
+    {
+        if (trim($password) !== 'rkvetbz2') {
+            $this->dispatch('swal:error', [
+                'title' => 'Password Otoritas Salah!',
+                'text' => 'Password yang dimasukkan tidak valid. Reset total dibatalkan demi keamanan data.',
+                'icon' => 'error'
+            ]);
+            return;
+        }
+
+        // 1. Reset Penilaian Juri & Skor
+        \App\Models\ScoreDetail::truncate();
+        \App\Models\Score::truncate();
+
+        // 2. Reset Suara Voting Penonton
+        \App\Models\Vote::truncate();
+
+        // 3. Reset KORPRI Musical Challenge
+        \App\Models\ChallengeParticipant::query()->update([
+            'status' => 'pending',
+            'genre' => null,
+            'song_title' => null,
+            'attempts_used' => 1,
+            'round1_genre' => null,
+            'round1_song' => null,
+        ]);
+        \App\Models\ChallengeSong::query()->update([
+            'is_used' => false,
+            'used_by' => null,
+        ]);
+        \App\Models\ChallengeResult::truncate();
+
+        // 4. Reset Status Peserta
+        \App\Models\Participant::query()->update([
+            'status' => 'waiting',
+            'song_title' => '-',
+            'is_favorite' => false,
+        ]);
+        \App\Models\Participant::where('order_number', 1)->update(['status' => 'performing']);
+
+        // 5. Reset Cache Sesi
+        \Illuminate\Support\Facades\Cache::forget('challenge_state');
+        \Illuminate\Support\Facades\Cache::forget('challenge_trigger');
+
+        $this->dispatch('swal:success', [
+            'title' => 'Reset Total Berhasil!',
+            'text' => 'Seluruh data lomba (nilai juri, voting, dan undian lagu) telah dikosongkan kembali ke awal.',
+            'icon' => 'success'
+        ]);
+    }
 };
 ?>
 
@@ -189,13 +242,21 @@ new class extends Component
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <h1 class="text-3xl font-black text-gray-800">Administrator Panel</h1>
             
-            <div class="flex items-center gap-3">
-                <a href="/admin/spinwheel" target="_blank" class="bg-gradient-to-r from-pink-500 to-indigo-600 hover:from-pink-600 hover:to-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 transition transform hover:scale-105">
-                    🎰 Buka Admin Spinwheel
+            <div class="flex flex-wrap items-center gap-3">
+                <button type="button" onclick="confirmResetDashboard()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transition text-sm cursor-pointer">
+                    <span>⚠️</span> Reset Total
+                </button>
+
+                <a href="/admin/challenge" target="_blank" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transition transform hover:scale-105 text-sm" style="background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%); color: #ffffff;">
+                    <span>🎤</span> KORPRI Musical Challenge
+                </a>
+
+                <a href="/admin/spinwheel" target="_blank" class="bg-gradient-to-r from-pink-500 to-indigo-600 hover:from-pink-600 hover:to-indigo-700 text-white font-bold px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transition transform hover:scale-105 text-sm" style="background: linear-gradient(135deg, #ec4899 0%, #4f46e5 100%); color: #ffffff;">
+                    <span>🎰</span> Buka Admin Spinwheel
                 </a>
                 
-                <a href="/admin/export-excel" target="_blank" class="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 transition">
-                    📊 Download Rekap Excel (.xlsx)
+                <a href="/admin/export-excel" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transition text-sm" style="background-color: #059669; color: #ffffff;">
+                    <span>📊</span> Download Rekap Excel (.xlsx)
                 </a>
             </div>
         </div>
@@ -565,6 +626,56 @@ new class extends Component
                     timerProgressBar: true
                 });
             });
+
+            window.addEventListener('swal:error', event => {
+                const data = event.detail[0] ? event.detail[0] : event.detail;
+                
+                Swal.fire({
+                    title: data.title,
+                    text: data.text,
+                    icon: data.icon || 'error',
+                    confirmButtonColor: '#ef4444'
+                });
+            });
+
+            function confirmResetDashboard() {
+                Swal.fire({
+                    title: '⚠️ Reset Total Semua Data Lomba?',
+                    html: `
+                        <div class="text-slate-600 text-sm mb-3 text-left">
+                            Tindakan ini akan <strong>mengatur ulang seluruh data lomba menjadi kosongan lagi</strong>:
+                            <ul class="list-disc list-inside mt-1.5 space-y-1 text-slate-500 text-xs">
+                                <li>Nilai dari seluruh juri & skor direset (kosong)</li>
+                                <li>Hasil perolehan suara voting penonton direset</li>
+                                <li>Seluruh status undian & lagu KORPRI Musical Challenge direset</li>
+                            </ul>
+                        </div>
+                        <p class="text-xs text-rose-600 font-bold mb-1">Masukkan password otoritas admin untuk konfirmasi:</p>
+                    `,
+                    input: 'password',
+                    inputPlaceholder: 'Password otoritas...',
+                    inputAttributes: {
+                        autocapitalize: 'off',
+                        autocorrect: 'off'
+                    },
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e11d48',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Ya, Kosongkan Semua!',
+                    cancelButtonText: 'Batal',
+                    preConfirm: (password) => {
+                        if (!password) {
+                            Swal.showValidationMessage('Password wajib diisi!');
+                        }
+                        return password;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed && result.value) {
+                        @this.resetAllData(result.value);
+                    }
+                });
+            }
         </script>
         
     </div>

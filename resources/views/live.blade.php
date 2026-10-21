@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Layar Live Scoring</title>
+    <title>Live Scoring - KORPRI Musical Challenge 2026</title>
     <link rel="icon" type="image/png" href="{{ asset('logo/setneg.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('logo/setneg.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -162,7 +162,7 @@
                 container.innerHTML = `
                     <div class="text-center">
                         <img src="https://laravel.com/img/logomark.min.svg" alt="Logo" class="w-48 h-48 mx-auto mb-12 opacity-50">
-                        <h1 class="text-6xl font-black text-gray-300 mb-6 tracking-tight">KARAOKE COMPETITION</h1>
+                        <h1 class="text-6xl font-black text-gray-300 mb-6 tracking-tight">KORPRI MUSICAL CHALLENGE 2026</h1>
                         <p class="text-3xl text-indigo-400 animate-pulse">Menunggu peserta memasuki panggung...</p>
                     </div>
                 `;

@@ -74,7 +74,7 @@ new class extends Component
         <h1 class="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 drop-shadow-lg uppercase tracking-widest mb-4 animate-pulse">
             LIVE LEADERBOARD
         </h1>
-        <p class="text-xl text-slate-400 font-semibold tracking-wide">Klasemen Sementara Peserta Defile Setwapres</p>
+        <p class="text-xl text-slate-400 font-semibold tracking-wide">Klasemen Sementara KORPRI Musical Challenge 2026</p>
     </div>
 
     <!-- Daftar Klasemen Semua Peserta -->

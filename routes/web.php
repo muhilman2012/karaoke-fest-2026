@@ -75,6 +75,20 @@ Route::get('/display/tradisional', function () {
     return view('traditional-page');
 });
 
+// 10. Modul KORPRI Musical Challenge (Spinwheel Genre & Lagu)
+Route::get('/admin/challenge', function () {
+    if (!session('is_admin')) return redirect('/admin/login');
+    return view('challenge-admin-page');
+});
+
+Route::get('/display/challenge', function () {
+    return view('challenge-display-page');
+});
+
+Route::get('/display/challenge-results', function () {
+    return view('challenge-results-page');
+});
+
 Route::get('/api/live-score', function () {
     $activeParticipant = Participant::with(['scores.details.aspect', 'scores.judge'])
                                   ->where('status', 'performing')

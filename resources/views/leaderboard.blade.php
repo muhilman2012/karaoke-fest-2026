@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboard Pemenang Lomba</title>
+    <title>Leaderboard - KORPRI Musical Challenge 2026</title>
     <link rel="icon" type="image/png" href="{{ asset('logo/setneg.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('logo/setneg.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -59,9 +59,9 @@
         <!-- Header Judul -->
         <div class="text-center">
             <h1 class="text-6xl font-black tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-pink-300 to-white drop-shadow-lg">
-                🏆 SETWAPRES KARAOKE FEST 2026 🏆
+                🏆 KORPRI MUSICAL CHALLENGE 2026 🏆
             </h1>
-            <p class="text-blue-200 text-2xl font-medium mt-2">Leaderboard Pemenang Lomba Karaoke</p>
+            <p class="text-blue-200 text-2xl font-medium mt-2">Leaderboard Pemenang KORPRI Musical Challenge</p>
         </div>
 
         <!-- Container Utama Tata Letak Podium -->
