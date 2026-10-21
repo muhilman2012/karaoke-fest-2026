@@ -91,24 +91,26 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // 3. Seed Master Pool Lagu Tantangan (35 Lagu dalam 5 Genre)
+        // 3. Seed Master Pool Lagu Tantangan (35 Lagu dalam 6 Genre)
         $challengeSongs = [
-            // POP (15)
-            ['genre' => 'POP', 'title' => 'Kulakukan Semua Untukmu - RAN'],
-            ['genre' => 'POP', 'title' => 'Alamak - Rizky Febrian'],
-            ['genre' => 'POP', 'title' => 'Pudar - Rosa'],
-            ['genre' => 'POP', 'title' => 'Kamu - Coboy Junior'],
-            ['genre' => 'POP', 'title' => 'Harus Bahagia - Yura Yunita'],
-            ['genre' => 'POP', 'title' => 'Salah - Potret'],
-            ['genre' => 'POP', 'title' => 'Cerita Cinta - Kahitna'],
-            ['genre' => 'POP', 'title' => 'Kala Cinta Menggoda - Ariel Noah'],
-            ['genre' => 'POP', 'title' => 'Dahulu - the groove'],
-            ['genre' => 'POP', 'title' => 'Cenat cenut - Smash'],
-            ['genre' => 'POP', 'title' => 'Bebas - Iwa K'],
-            ['genre' => 'POP', 'title' => 'Aku wanita - Reza Artamevia'],
-            ['genre' => 'POP', 'title' => 'Kita - Sheila on 7'],
-            ['genre' => 'POP', 'title' => 'Gejolak kawula muda - Club 80s'],
-            ['genre' => 'POP', 'title' => 'Kamulah satu-satunya - Dewa 19'],
+            // POP 1 (8)
+            ['genre' => 'POP 1', 'title' => 'Kulakukan Semua Untukmu - RAN'],
+            ['genre' => 'POP 1', 'title' => 'Alamak - Rizky Febrian'],
+            ['genre' => 'POP 1', 'title' => 'Pudar - Rosa'],
+            ['genre' => 'POP 1', 'title' => 'Kamu - Coboy Junior'],
+            ['genre' => 'POP 1', 'title' => 'Harus Bahagia - Yura Yunita'],
+            ['genre' => 'POP 1', 'title' => 'Salah - Potret'],
+            ['genre' => 'POP 1', 'title' => 'Cerita Cinta - Kahitna'],
+            ['genre' => 'POP 1', 'title' => 'Kala Cinta Menggoda - Ariel Noah'],
+
+            // POP 2 (7)
+            ['genre' => 'POP 2', 'title' => 'Dahulu - the groove'],
+            ['genre' => 'POP 2', 'title' => 'Cenat cenut - Smash'],
+            ['genre' => 'POP 2', 'title' => 'Bebas - Iwa K'],
+            ['genre' => 'POP 2', 'title' => 'Aku wanita - Reza Artamevia'],
+            ['genre' => 'POP 2', 'title' => 'Kita - Sheila on 7'],
+            ['genre' => 'POP 2', 'title' => 'Gejolak kawula muda - Club 80s'],
+            ['genre' => 'POP 2', 'title' => 'Kamulah satu-satunya - Dewa 19'],
 
             // ROCK (7)
             ['genre' => 'ROCK', 'title' => 'Ningrat - Jamrud'],
@@ -140,7 +142,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($challengeSongs as $song) {
-            ChallengeSong::firstOrCreate(
+            ChallengeSong::updateOrCreate(
                 ['title' => $song['title']],
                 [
                     'genre' => $song['genre'],

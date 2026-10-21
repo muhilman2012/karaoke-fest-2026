@@ -103,8 +103,10 @@ new class extends Component
                                     $isDone = ($p->status === 'completed');
                                     // Warna Badge Genre
                                     $genreBadge = 'bg-slate-800 text-slate-400 border-slate-700';
-                                    if ($p->genre === 'POP') $genreBadge = 'bg-pink-500/20 text-pink-300 border-pink-500/50';
-                                    elseif ($p->genre === 'ROCK') $genreBadge = 'bg-rose-500/20 text-rose-300 border-rose-500/50';
+                                    if ($p->genre === 'POP 1') $genreBadge = 'bg-pink-500/20 text-pink-300 border-pink-500/50';
+                                    elseif ($p->genre === 'POP 2') $genreBadge = 'bg-rose-500/20 text-rose-300 border-rose-500/50';
+                                    elseif ($p->genre === 'POP') $genreBadge = 'bg-pink-500/20 text-pink-300 border-pink-500/50';
+                                    elseif ($p->genre === 'ROCK') $genreBadge = 'bg-red-500/20 text-red-300 border-red-500/50';
                                     elseif ($p->genre === 'DANGDUT') $genreBadge = 'bg-amber-500/20 text-amber-300 border-amber-500/50';
                                     elseif ($p->genre === 'NUSANTARA MIX') $genreBadge = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50';
                                     elseif ($p->genre === 'SKA/REGGAE') $genreBadge = 'bg-purple-500/20 text-purple-300 border-purple-500/50';

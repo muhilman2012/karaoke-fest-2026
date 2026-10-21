@@ -45,10 +45,10 @@ new class extends Component
             $this->items = $state['items'] ?? [];
             $this->lastStateUpdate = $state['updated_at'] ?? microtime(true);
         } else {
-            // Standby awal: 5 genre
+            // Standby awal: 6 genre
             $this->eventTitle = Cache::get('challenge_event_title', 'KORPRI MUSICAL CHALLENGE 2026');
-            $genres = ['POP', 'ROCK', 'DANGDUT', 'NUSANTARA MIX', 'SKA/REGGAE'];
-            $colors = ['#ec4899', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6'];
+            $genres = ['POP 1', 'POP 2', 'ROCK', 'DANGDUT', 'NUSANTARA MIX', 'SKA/REGGAE'];
+            $colors = ['#ec4899', '#f43f5e', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6'];
             $this->items = [];
             foreach ($genres as $i => $g) {
                 $this->items[] = [

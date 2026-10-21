@@ -89,7 +89,7 @@
                                 KORPRI Musical Challenge
                             </h2>
                             <p class="text-slate-300 text-xs sm:text-sm mt-2 leading-relaxed">
-                                Undian Roda Putar 2-Tahap: <strong>Spin Genre</strong> (POP, ROCK, DANGDUT, NUSANTARA MIX, SKA/REGGAE) lalu <strong>Spin Lagu</strong> dengan sistem 2x kesempatan undi per tim.
+                                Undian Roda Putar 2-Tahap: <strong>Spin Genre</strong> (POP 1, POP 2, ROCK, DANGDUT, NUSANTARA MIX, SKA/REGGAE) lalu <strong>Spin Lagu</strong> dengan sistem 2x kesempatan undi per tim.
                             </p>
                         </div>
                     </div>

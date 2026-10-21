@@ -43,7 +43,7 @@ new class extends Component
     public $editingParticipantName = '';
 
     // Form Tambah Lagu Baru
-    public $newSongGenre = 'POP';
+    public $newSongGenre = 'POP 1';
     public $newSongTitle = '';
 
     public function mount()
@@ -138,7 +138,7 @@ new class extends Component
     {
         if ($this->step !== 'spin_genre') return;
 
-        $genres = ['POP', 'ROCK', 'DANGDUT', 'NUSANTARA MIX', 'SKA/REGGAE'];
+        $genres = ['POP 1', 'POP 2', 'ROCK', 'DANGDUT', 'NUSANTARA MIX', 'SKA/REGGAE'];
 
         $winnerGenre = $genres[array_rand($genres)];
         $this->currentGenre = $winnerGenre;
@@ -376,10 +376,10 @@ new class extends Component
     public function broadcastState()
     {
         $items = [];
-        // PENTING: Saat step 'spin_genre' ATAU 'genre_chosen', roda di layar display TETAP menampilkan 5 GENRE!
+        // PENTING: Saat step 'spin_genre' ATAU 'genre_chosen', roda di layar display TETAP menampilkan 6 GENRE!
         if ($this->step === 'spin_genre' || $this->step === 'genre_chosen' || $this->step === 'idle') {
-            $genres = ['POP', 'ROCK', 'DANGDUT', 'NUSANTARA MIX', 'SKA/REGGAE'];
-            $colors = ['#ec4899', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6'];
+            $genres = ['POP 1', 'POP 2', 'ROCK', 'DANGDUT', 'NUSANTARA MIX', 'SKA/REGGAE'];
+            $colors = ['#ec4899', '#f43f5e', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6'];
 
             foreach ($genres as $i => $g) {
                 $items[] = [
@@ -1127,12 +1127,12 @@ new class extends Component
                                 <h3 class="text-xl font-black text-slate-900 mt-1">Putar Roda Genre Musik</h3>
                             </div>
                             <span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg">
-                                5 Genre: POP, ROCK, DANGDUT, NUSANTARA MIX, SKA/REGGAE
+                                6 Genre: POP 1, POP 2, ROCK, DANGDUT, NUSANTARA MIX, SKA/REGGAE
                             </span>
                         </div>
 
                         <p class="text-slate-600 text-sm">
-                            Layar display panggung saat ini menampilkan <strong>5 Genre Musik</strong>. 
+                            Layar display panggung saat ini menampilkan <strong>6 Genre Musik</strong>. 
                             Klik tombol di bawah untuk memutar roda genre terlebih dahulu.
                             @if($round === 2)
                                 <br><strong class="text-amber-700">* Kesempatan ke-2: Seluruh genre dan lagu tetap tersedia lengkap di roda putar.</strong>
@@ -1306,7 +1306,8 @@ new class extends Component
                         <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-2">
                             <div>
                                 <select wire:model="newSongGenre" class="w-full text-xs border-slate-300 rounded-lg p-2 border bg-white">
-                                    <option value="POP">POP</option>
+                                    <option value="POP 1">POP 1</option>
+                                    <option value="POP 2">POP 2</option>
                                     <option value="ROCK">ROCK</option>
                                     <option value="DANGDUT">DANGDUT</option>
                                     <option value="NUSANTARA MIX">NUSANTARA MIX</option>
