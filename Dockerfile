@@ -17,8 +17,10 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Install Redis extension melalui PECL
-RUN pecl install redis && docker-php-ext-enable redis
+# Install Redis extension langsung dari GitHub (anti-timeout pecl.php.net)
+RUN git clone --depth 1 https://github.com/phpredis/phpredis.git /usr/src/php/ext/redis \
+    && docker-php-ext-install redis \
+    && rm -rf /usr/src/php/ext/redis
 
 # Dapatkan Composer versi terbaru
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
