@@ -19,6 +19,11 @@ new class extends Component
     public $eventTitle = 'KORPRI MUSICAL CHALLENGE 2026';
     public $items = [];
 
+    // Status animasi putaran roda (Anti-Spoiler)
+    public $isSpinning = false;
+    public $spinEndTime = 0;
+    public $spinType = null;
+
     public function mount()
     {
         $this->loadState();
@@ -57,7 +62,33 @@ new class extends Component
 
     public function checkState()
     {
-        // 1. Cek perubahan data state (pergantian peserta / perpindahan fase genre ke lagu)
+        // 1. Cek trigger putaran roda dari Admin
+        $trigger = Cache::get('challenge_trigger');
+        if ($trigger && $trigger['time'] > $this->lastTriggerTime) {
+            $this->lastTriggerTime = $trigger['time'];
+            $duration = (float)($trigger['duration'] ?? 6);
+            $this->isSpinning = true;
+            $this->spinEndTime = microtime(true) + $duration;
+            $this->spinType = $trigger['step']; // 'genre' or 'song'
+
+            $this->dispatch('start-challenge-spin', [
+                'step' => $trigger['step'],
+                'round' => $trigger['round'] ?? 1,
+                'winnerId' => $trigger['winner_id'],
+                'winnerName' => $trigger['winner_name'],
+                'duration' => $duration,
+                'participant' => $trigger['participant'] ?? $this->participantName,
+                'genre' => $trigger['genre'] ?? $this->genre
+            ]);
+        }
+
+        // Cek apakah animasi putaran roda sudah selesai
+        if ($this->isSpinning && microtime(true) >= $this->spinEndTime) {
+            $this->isSpinning = false;
+            $this->spinType = null;
+        }
+
+        // 2. Cek perubahan data state (pergantian peserta / perpindahan fase genre ke lagu)
         $state = Cache::get('challenge_state');
         if ($state && ($state['updated_at'] ?? 0) > $this->lastStateUpdate) {
             $this->loadState();
@@ -69,21 +100,13 @@ new class extends Component
                 'round' => $this->round
             ]);
         }
+    }
 
-        // 2. Cek trigger putaran roda dari Admin
-        $trigger = Cache::get('challenge_trigger');
-        if ($trigger && $trigger['time'] > $this->lastTriggerTime) {
-            $this->lastTriggerTime = $trigger['time'];
-            $this->dispatch('start-challenge-spin', [
-                'step' => $trigger['step'],
-                'round' => $trigger['round'] ?? 1,
-                'winnerId' => $trigger['winner_id'],
-                'winnerName' => $trigger['winner_name'],
-                'duration' => $trigger['duration'] ?? 5,
-                'participant' => $trigger['participant'] ?? $this->participantName,
-                'genre' => $trigger['genre'] ?? $this->genre
-            ]);
-        }
+    public function spinFinished()
+    {
+        $this->isSpinning = false;
+        $this->spinType = null;
+        $this->spinEndTime = 0;
     }
 };
 ?>
@@ -125,33 +148,51 @@ new class extends Component
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0">
-                    @if($step === 'spin_genre')
-                        <span class="bg-amber-500/20 border border-amber-400 text-amber-300 font-extrabold px-3 py-1.5 rounded-lg text-xs tracking-wide flex items-center gap-1.5 animate-pulse">
-                            <span>🎲</span> TAHAP 1: SPIN GENRE
+                    <!-- Indikator Anti-Spoiler Saat Roda Sedang Berputar -->
+                    <template x-if="isSpinning">
+                        <span class="bg-gradient-to-r from-amber-500/30 via-rose-500/30 to-indigo-500/30 border border-amber-400 text-amber-200 font-extrabold px-3.5 py-1.5 rounded-lg text-xs tracking-wide flex items-center gap-2 shadow-lg animate-pulse">
+                            <span class="animate-spin text-sm inline-block">🎲</span>
+                            <span x-text="spinningType === 'song' ? 'MEMUTAR RODA LAGU...' : 'MEMUTAR RODA GENRE...'"></span>
                         </span>
-                    @elseif($step === 'genre_chosen')
-                        <span class="bg-amber-500/30 border border-amber-300 text-amber-200 font-extrabold px-3 py-1.5 rounded-lg text-xs tracking-wide flex items-center gap-1.5">
-                            <span>✓</span> GENRE: {{ $genre }}
-                        </span>
-                    @elseif($step === 'spin_song')
-                        <span class="bg-pink-500/20 border border-pink-400 text-pink-300 font-extrabold px-3 py-1.5 rounded-lg text-xs tracking-wide flex items-center gap-1.5 animate-pulse">
-                            <span>🎵</span> TAHAP 2: SPIN LAGU ({{ $genre }})
-                        </span>
-                    @elseif($step === 'decision')
-                        <span class="bg-amber-500/30 border border-amber-300 text-amber-200 font-extrabold px-3 py-1.5 rounded-lg text-xs tracking-wide flex items-center gap-1.5">
-                            <span>🤔</span> KEPUTUSAN TIM
-                        </span>
-                    @elseif($step === 'completed')
-                        <span class="bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-extrabold px-3 py-1.5 rounded-lg text-xs tracking-wide flex items-center gap-1.5">
-                            <span>🎉</span> TANTANGAN FINAL TERKUNCI
-                        </span>
-                    @endif
+                    </template>
+
+                    <!-- Status Reguler (Hanya Tampil Saat Roda Sedang Diam / Tidak Berputar) -->
+                    <div x-show="!isSpinning" :class="isSpinning ? 'hidden' : 'flex'" class="items-center gap-2">
+                        @if($isSpinning)
+                            <span class="bg-gradient-to-r from-amber-500/30 via-rose-500/30 to-indigo-500/30 border border-amber-400 text-amber-200 font-extrabold px-3.5 py-1.5 rounded-lg text-xs tracking-wide flex items-center gap-2 shadow-lg animate-pulse">
+                                <span class="animate-spin text-sm inline-block">🎲</span>
+                                <span>{{ $spinType === 'song' ? 'MEMUTAR RODA LAGU...' : 'MEMUTAR RODA GENRE...' }}</span>
+                            </span>
+                        @else
+                            @if($step === 'spin_genre')
+                                <span class="bg-amber-500/20 border border-amber-400 text-amber-300 font-extrabold px-3 py-1.5 rounded-lg text-xs tracking-wide flex items-center gap-1.5 animate-pulse">
+                                    <span>🎲</span> TAHAP 1: SPIN GENRE
+                                </span>
+                            @elseif($step === 'genre_chosen')
+                                <span class="bg-amber-500/30 border border-amber-300 text-amber-200 font-extrabold px-3 py-1.5 rounded-lg text-xs tracking-wide flex items-center gap-1.5 shadow-sm">
+                                    <span>✓</span> GENRE: {{ $genre }}
+                                </span>
+                            @elseif($step === 'spin_song')
+                                <span class="bg-pink-500/20 border border-pink-400 text-pink-300 font-extrabold px-3 py-1.5 rounded-lg text-xs tracking-wide flex items-center gap-1.5 animate-pulse">
+                                    <span>🎵</span> TAHAP 2: SPIN LAGU ({{ $genre }})
+                                </span>
+                            @elseif($step === 'decision')
+                                <span class="bg-amber-500/30 border border-amber-300 text-amber-200 font-extrabold px-3 py-1.5 rounded-lg text-xs tracking-wide flex items-center gap-1.5 shadow-sm">
+                                    <span>🤔</span> KEPUTUSAN TIM
+                                </span>
+                            @elseif($step === 'completed')
+                                <span class="bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-extrabold px-3 py-1.5 rounded-lg text-xs tracking-wide flex items-center gap-1.5 shadow-sm">
+                                    <span>🎉</span> TANTANGAN FINAL TERKUNCI
+                                </span>
+                            @endif
+                        @endif
+                    </div>
                 </div>
             </div>
 
-            <!-- Tampilan Ringkas Hasil Final (Hanya muncul jika sudah final/selesai) -->
-            @if($step === 'completed')
-                <div class="mt-2 bg-gradient-to-r from-emerald-950/80 via-slate-900/90 to-emerald-950/80 border border-emerald-400/70 rounded-xl px-4 py-2 max-w-xl mx-auto shadow-lg backdrop-blur-md">
+            <!-- Tampilan Ringkas Hasil Final (Hanya muncul jika sudah final/selesai DAN roda tidak sedang berputar) -->
+            @if($step === 'completed' && !$isSpinning)
+                <div x-show="!isSpinning" :class="isSpinning ? 'hidden' : ''" class="mt-2 bg-gradient-to-r from-emerald-950/80 via-slate-900/90 to-emerald-950/80 border border-emerald-400/70 rounded-xl px-4 py-2 max-w-xl mx-auto shadow-lg backdrop-blur-md">
                     <div class="text-sm md:text-base font-black text-white">
                         FINAL: <span class="text-amber-300">{{ $genre }}</span> — <span class="text-pink-300">{{ $song }}</span>
                     </div>
@@ -349,6 +390,7 @@ new class extends Component
             Alpine.data('challengeWheelApp', (initialItems) => ({
                 items: initialItems || [],
                 isSpinning: false,
+                spinningType: null,
                 currentRotation: 0,
                 
                 init() {
@@ -359,6 +401,8 @@ new class extends Component
                     // Event saat trigger putaran diterima dari Admin
                     window.addEventListener('start-challenge-spin', (e) => {
                         const data = e.detail[0] || e.detail; 
+                        this.isSpinning = true;
+                        this.spinningType = data.step;
                         this.spinWheel(data);
                     });
 
@@ -454,8 +498,9 @@ new class extends Component
                 },
 
                 spinWheel(data) {
-                    if (this.isSpinning || !this.items || this.items.length === 0) return;
+                    if (!this.items || this.items.length === 0) return;
                     this.isSpinning = true;
+                    this.spinningType = data.step;
 
                     // Cari index pemenang berdasarkan id atau name
                     let winnerIndex = this.items.findIndex(i => String(i.id) === String(data.winnerId));
@@ -498,6 +543,10 @@ new class extends Component
                         });
 
                         this.isSpinning = false;
+                        this.spinningType = null;
+                        if (this.$wire && typeof this.$wire.spinFinished === 'function') {
+                            this.$wire.spinFinished();
+                        }
 
                         const isGenre = (data.step === 'genre');
 
