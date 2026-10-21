@@ -587,6 +587,31 @@ new class extends Component
         ]);
     }
 
+    // Reorder massal dari Drag and Drop
+    public function updateOrderList($orderedIds)
+    {
+        if (empty($orderedIds) || !is_array($orderedIds)) return;
+
+        DB::transaction(function () use ($orderedIds) {
+            // Gunakan offset sementara untuk menghindari error duplicate key constraint MySQL
+            foreach ($orderedIds as $idx => $id) {
+                ChallengeParticipant::where('id', $id)->update(['order_number' => $idx + 10000]);
+            }
+
+            foreach ($orderedIds as $idx => $id) {
+                ChallengeParticipant::where('id', $id)->update(['order_number' => $idx + 1]);
+            }
+        });
+
+        $this->resequenceParticipants();
+        $this->syncToVotingList();
+
+        $this->dispatch('swal:toast', [
+            'title' => 'Urutan Peserta Disimpan!',
+            'icon' => 'success'
+        ]);
+    }
+
     // Mulai Edit Nama Peserta
     public function startEditParticipant($id)
     {
@@ -757,7 +782,20 @@ new class extends Component
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script>
+        window.addEventListener('swal:toast', (e) => {
+            const data = e.detail[0] || e.detail;
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+                icon: data.icon || 'success',
+                title: data.title
+            });
+        });
         window.addEventListener('swal:success', (e) => {
             const data = e.detail[0] || e.detail;
             Swal.fire({
@@ -886,18 +924,44 @@ new class extends Component
                     </button>
                 </div>
 
-                <!-- List Peserta & Kontrol Urutan -->
-                <div class="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
+                <!-- List Peserta & Kontrol Urutan (Mendukung Drag & Drop Sortable) -->
+                <div x-data="{
+                        init() {
+                            if (typeof Sortable !== 'undefined') {
+                                new Sortable(this.$el, {
+                                    animation: 200,
+                                    handle: '.drag-handle',
+                                    draggable: '.sortable-item',
+                                    ghostClass: 'opacity-40 bg-indigo-50 border-2 border-dashed border-indigo-400',
+                                    chosenClass: 'scale-[1.01] shadow-md bg-white',
+                                    onEnd: () => {
+                                        let orderedIds = Array.from(this.$el.querySelectorAll('.sortable-item'))
+                                            .map(el => el.getAttribute('data-id'))
+                                            .filter(Boolean);
+                                        $wire.updateOrderList(orderedIds);
+                                    }
+                                });
+                            }
+                        }
+                    }" 
+                    class="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
                     @forelse($participantsList as $idx => $p)
                         @php
                             $isFirst = ($idx === 0);
                             $isLast = ($idx === count($participantsList) - 1);
                         @endphp
-                        <div class="p-3 rounded-xl border transition flex flex-col gap-2 {{ $activeParticipantId === $p->id ? 'bg-indigo-50/80 border-indigo-400 shadow-sm ring-1 ring-indigo-400/30' : ($p->status === 'completed' ? 'bg-slate-50/80 border-slate-200' : 'bg-white border-slate-200 hover:border-indigo-300') }}">
+                        <div wire:key="participant-card-{{ $p->id }}" data-id="{{ $p->id }}" class="sortable-item p-3 rounded-xl border transition flex flex-col gap-2 {{ $activeParticipantId === $p->id ? 'bg-indigo-50/80 border-indigo-400 shadow-sm ring-1 ring-indigo-400/30' : ($p->status === 'completed' ? 'bg-slate-50/80 border-slate-200' : 'bg-white border-slate-200 hover:border-indigo-300') }}">
                             
-                            <!-- Baris Atas: Stepper Urutan, Nama Peserta, Status Badge & Opsi Hapus -->
+                            <!-- Baris Atas: Drag Handle, Stepper Urutan, Nama Peserta, Status Badge & Opsi Hapus -->
                             <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                                    <!-- Drag Handle Gripper -->
+                                    <button type="button" class="drag-handle cursor-grab active:cursor-grabbing text-slate-300 hover:text-indigo-600 p-1 -ml-1 rounded transition select-none flex items-center shrink-0" title="Klik dan tahan (drag) untuk mengatur urutan peserta">
+                                        <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M7 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm6-12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                        </svg>
+                                    </button>
+
                                     <!-- Stepper Pengubah Urutan Terpadu [ ▲ | #X | ▼ ] -->
                                     <div class="inline-flex items-center bg-slate-100 border border-slate-200 rounded-lg p-0.5 shrink-0 shadow-xs">
                                         <button wire:click="moveUp({{ $p->id }})" 
