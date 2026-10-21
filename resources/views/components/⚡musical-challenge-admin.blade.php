@@ -783,6 +783,22 @@ new class extends Component
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <style>
+        .sortable-ghost {
+            opacity: 0.35 !important;
+            background-color: #e0e7ff !important;
+            border: 2px dashed #6366f1 !important;
+            border-radius: 0.75rem !important;
+        }
+        .sortable-chosen {
+            background-color: #ffffff !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15) !important;
+        }
+        .sortable-drag {
+            cursor: grabbing !important;
+            opacity: 0.95 !important;
+        }
+    </style>
     <script>
         window.addEventListener('swal:toast', (e) => {
             const data = e.detail[0] || e.detail;
@@ -932,8 +948,9 @@ new class extends Component
                                     animation: 200,
                                     handle: '.drag-handle',
                                     draggable: '.sortable-item',
-                                    ghostClass: 'opacity-40 bg-indigo-50 border-2 border-dashed border-indigo-400',
-                                    chosenClass: 'scale-[1.01] shadow-md bg-white',
+                                    ghostClass: 'sortable-ghost',
+                                    chosenClass: 'sortable-chosen',
+                                    dragClass: 'sortable-drag',
                                     onEnd: () => {
                                         let orderedIds = Array.from(this.$el.querySelectorAll('.sortable-item'))
                                             .map(el => el.getAttribute('data-id'))
