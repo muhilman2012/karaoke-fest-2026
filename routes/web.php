@@ -139,3 +139,7 @@ Route::get('/api/leaderboard-data', function () {
         'favorite'  => $favorite
     ]);
 });
+
+Route::get('/receipt', function () {
+    return view('receipt');
+});
