@@ -102,7 +102,7 @@ new class extends Component
 };
 ?>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 p-6 flex flex-col items-center" 
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 px-4 py-6 sm:p-6 flex flex-col items-center"
      wire:poll.3s="checkStatus" 
      x-data="voteHandler()">
     
@@ -160,9 +160,9 @@ new class extends Component
         });
     </script>
 
-    <div class="w-full max-w-2xl mt-8 mb-12 text-center">
-        <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-indigo-300 mb-2">VOTING PESERTA FAVORIT</h1>
-        <p class="text-indigo-200">KORPRI Musical Challenge 2026 • Dukung peserta jagoanmu! (1 Perangkat hanya bisa memilih 1 kali)</p>
+    <div class="w-full max-w-2xl mt-4 mb-8 text-center sm:mt-8 sm:mb-12">
+        <h1 class="text-3xl leading-tight font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-indigo-300 mb-3 sm:text-4xl">VOTING PESERTA FAVORIT</h1>
+        <p class="text-sm leading-relaxed text-indigo-200 sm:text-base">KORPRI Musical Challenge 2026 <span class="hidden sm:inline">•</span><span class="block sm:inline"> Dukung peserta jagoanmu!</span> <span class="block sm:inline">(1 perangkat hanya bisa memilih 1 kali)</span></p>
     </div>
 
     @if(!$voting_is_open)
@@ -173,10 +173,19 @@ new class extends Component
         </div>
         
     @elseif($hasVoted)
-        <div class="w-full max-w-2xl bg-white/10 backdrop-blur-md border border-green-400/50 rounded-3xl p-10 text-center shadow-2xl animate-fade-in-up">
-            <div class="text-6xl mb-4">🎉</div>
-            <h2 class="text-3xl font-black text-white mb-2">Terima Kasih!</h2>
-            <p class="text-xl text-green-200">Voting Anda untuk <span class="font-bold text-white bg-green-600 px-3 py-1 rounded-lg mx-1">{{ $votedFor }}</span> telah masuk ke dalam sistem.</p>
+        <div class="w-full max-w-2xl bg-white/10 backdrop-blur-md border border-green-400/50 rounded-3xl px-5 py-8 text-center shadow-2xl animate-fade-in-up sm:p-10">
+            <div class="text-5xl mb-4 sm:text-6xl">🎉</div>
+            <h2 class="text-3xl font-black text-white mb-5 sm:text-4xl">Terima Kasih!</h2>
+
+            <div class="mx-auto flex max-w-xl flex-col items-center gap-3">
+                <p class="text-lg leading-relaxed text-green-200 sm:text-xl">Voting Anda telah diberikan kepada:</p>
+                <div class="w-full max-w-lg rounded-2xl border border-green-300/30 bg-green-600 px-4 py-3 shadow-lg shadow-green-950/20 sm:px-6">
+                    <p class="break-words text-xl font-black leading-snug text-white sm:text-2xl">
+                        {{ $votedFor }}
+                    </p>
+                </div>
+                <p class="text-base leading-relaxed text-green-200 sm:text-xl">Pilihan Anda telah berhasil masuk ke dalam sistem.</p>
+            </div>
         </div>
         
     @else

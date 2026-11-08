@@ -8,6 +8,7 @@ use App\Models\Score;
 use App\Models\Vote;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use App\Services\CompetitionResetService;
 
 new class extends Component
 {
@@ -182,56 +183,35 @@ new class extends Component
         Participant::where('id', $id)->update(['is_favorite' => true]);
     }
 
-    // Reset Total Data Lomba (Dengan Otoritas Password)
+    // Reset nilai dan voting tanpa mengubah master peserta maupun lagu.
     public function resetAllData($password)
     {
         $passwordHash = config('admin.password_hash');
         if (!is_string($passwordHash) || !Hash::check((string) $password, $passwordHash)) {
             $this->dispatch('swal:error', [
                 'title' => 'Password Otoritas Salah!',
-                'text' => 'Password yang dimasukkan tidak valid. Reset total dibatalkan demi keamanan data.',
+                'text' => 'Password yang dimasukkan tidak valid. Reset dibatalkan demi keamanan data.',
                 'icon' => 'error'
             ]);
             return;
         }
 
-        // 1. Reset Penilaian Juri & Skor
-        \App\Models\ScoreDetail::truncate();
-        \App\Models\Score::truncate();
-
-        // 2. Reset Suara Voting Penonton
-        \App\Models\Vote::truncate();
-
-        // 3. Reset KORPRI Musical Challenge
-        \App\Models\ChallengeParticipant::query()->update([
-            'status' => 'pending',
-            'genre' => null,
-            'song_title' => null,
-            'attempts_used' => 1,
-            'round1_genre' => null,
-            'round1_song' => null,
-        ]);
-        \App\Models\ChallengeSong::query()->update([
-            'is_used' => false,
-            'used_by' => null,
-        ]);
-        \App\Models\ChallengeResult::truncate();
-
-        // 4. Reset Status Peserta
-        \App\Models\Participant::query()->update([
-            'status' => 'waiting',
-            'song_title' => '-',
-            'is_favorite' => false,
-        ]);
-        \App\Models\Participant::where('order_number', 1)->update(['status' => 'performing']);
-
-        // 5. Reset Cache Sesi
-        \Illuminate\Support\Facades\Cache::forget('challenge_state');
-        \Illuminate\Support\Facades\Cache::forget('challenge_trigger');
+        try {
+            app(CompetitionResetService::class)->resetScoresAndVotes();
+            $this->voting_is_open = false;
+        } catch (\Throwable $exception) {
+            report($exception);
+            $this->dispatch('swal:error', [
+                'title' => 'Reset Gagal!',
+                'text' => 'Data tidak diubah. Silakan periksa log aplikasi atau hubungi administrator server.',
+                'icon' => 'error',
+            ]);
+            return;
+        }
 
         $this->dispatch('swal:success', [
-            'title' => 'Reset Total Berhasil!',
-            'text' => 'Seluruh data lomba (nilai juri, voting, dan undian lagu) telah dikosongkan kembali ke awal.',
+            'title' => 'Reset Berhasil!',
+            'text' => 'Nilai juri, voting, juara favorit, dan status tampil telah direset. Daftar peserta serta lagu tetap tersimpan.',
             'icon' => 'success'
         ]);
     }
@@ -246,7 +226,7 @@ new class extends Component
             
             <div class="flex flex-wrap items-center gap-3">
                 <button type="button" onclick="confirmResetDashboard()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transition text-sm cursor-pointer">
-                    <span>⚠️</span> Reset Total
+                    <span>⚠️</span> Reset Nilai & Voting
                 </button>
 
                 <a href="/admin/challenge" target="_blank" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transition transform hover:scale-105 text-sm" style="background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%); color: #ffffff;">
@@ -642,14 +622,16 @@ new class extends Component
 
             function confirmResetDashboard() {
                 Swal.fire({
-                    title: '⚠️ Reset Total Semua Data Lomba?',
+                    title: '⚠️ Reset Nilai dan Voting?',
                     html: `
                         <div class="text-slate-600 text-sm mb-3 text-left">
-                            Tindakan ini akan <strong>mengatur ulang seluruh data lomba menjadi kosongan lagi</strong>:
+                            Tindakan ini akan <strong>menghapus data hasil lomba</strong>:
                             <ul class="list-disc list-inside mt-1.5 space-y-1 text-slate-500 text-xs">
                                 <li>Nilai dari seluruh juri & skor direset (kosong)</li>
                                 <li>Hasil perolehan suara voting penonton direset</li>
-                                <li>Seluruh status undian & lagu KORPRI Musical Challenge direset</li>
+                                <li>Status tampil direset; peserta nomor 1 kembali aktif</li>
+                                <li>Daftar peserta dan judul lagu tetap dipertahankan</li>
+                                <li>Voting akan ditutup setelah reset</li>
                             </ul>
                         </div>
                         <p class="text-xs text-rose-600 font-bold mb-1">Masukkan password otoritas admin untuk konfirmasi:</p>
@@ -664,7 +646,7 @@ new class extends Component
                     showCancelButton: true,
                     confirmButtonColor: '#e11d48',
                     cancelButtonColor: '#64748b',
-                    confirmButtonText: 'Ya, Kosongkan Semua!',
+                    confirmButtonText: 'Ya, Reset Nilai & Voting!',
                     cancelButtonText: 'Batal',
                     preConfirm: (password) => {
                         if (!password) {
