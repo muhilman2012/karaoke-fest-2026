@@ -7,6 +7,7 @@ use App\Models\Aspect;
 use App\Models\Score;
 use App\Models\Vote;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
 new class extends Component
 {
@@ -184,7 +185,8 @@ new class extends Component
     // Reset Total Data Lomba (Dengan Otoritas Password)
     public function resetAllData($password)
     {
-        if (trim($password) !== 'rkvetbz2') {
+        $passwordHash = config('admin.password_hash');
+        if (!is_string($passwordHash) || !Hash::check((string) $password, $passwordHash)) {
             $this->dispatch('swal:error', [
                 'title' => 'Password Otoritas Salah!',
                 'text' => 'Password yang dimasukkan tidak valid. Reset total dibatalkan demi keamanan data.',

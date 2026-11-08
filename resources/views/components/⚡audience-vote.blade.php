@@ -6,6 +6,8 @@ use App\Models\Vote;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\RateLimiter;
 
 new class extends Component
 {
@@ -41,30 +43,61 @@ new class extends Component
         }
     }
 
-    public function castVote($participantId)
+    public function castVote($participantId, $deviceToken = null)
     {
         $this->voting_is_open = Cache::get('voting_is_open', true);
         if (!$this->voting_is_open) return;
         if ($this->hasVoted) return;
 
-        $token = request()->cookie('voter_token');
+        $token = $deviceToken ?: request()->cookie('voter_token');
         if (!$token) {
             $token = (string) Str::uuid();
-            Cookie::queue('voter_token', $token, 60 * 24 * 30);
         }
 
-        if (Vote::where('device_token', $token)->exists()) {
-            $this->checkVote();
+        abort_unless(Str::isUuid($token), 422, 'Identitas perangkat tidak valid.');
+        abort_unless(Participant::whereKey($participantId)->exists(), 404);
+
+        $rateLimitKey = 'audience-vote:' . request()->ip();
+        abort_if(
+            RateLimiter::tooManyAttempts($rateLimitKey, 60),
+            429,
+            'Terlalu banyak percobaan voting. Silakan tunggu sebentar.'
+        );
+        RateLimiter::hit($rateLimitKey, 60);
+
+        Cookie::queue(cookie(
+            'voter_token',
+            $token,
+            60 * 24 * 180,
+            '/',
+            null,
+            request()->isSecure(),
+            true,
+            false,
+            'Lax'
+        ));
+
+        $existingVote = Vote::with('participant')->where('device_token', $token)->first();
+        if ($existingVote) {
+            $this->hasVoted = true;
+            $this->votedFor = $existingVote->participant->name;
             return;
         }
 
-        Vote::create([
-            'participant_id' => $participantId,
-            'device_token' => $token,
-            'ip_address' => request()->ip(),
-        ]);
+        try {
+            $vote = Vote::create([
+                'participant_id' => $participantId,
+                'device_token' => $token,
+                'ip_address' => request()->ip(),
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            $vote = Vote::where('device_token', $token)->first();
+        }
 
-        $this->checkVote();
+        if ($vote) {
+            $this->hasVoted = true;
+            $this->votedFor = $vote->participant->name;
+        }
     }
 };
 ?>
@@ -80,6 +113,18 @@ new class extends Component
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('voteHandler', () => ({
+                deviceToken() {
+                    let token = localStorage.getItem('korpri_voter_token');
+                    if (!token) {
+                        token = globalThis.crypto?.randomUUID?.()
+                            ?? 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, character => {
+                                const random = Math.random() * 16 | 0;
+                                return (character === 'x' ? random : (random & 0x3 | 0x8)).toString(16);
+                            });
+                        localStorage.setItem('korpri_voter_token', token);
+                    }
+                    return token;
+                },
                 async submitVote(participantId, participantName) {
                     const result = await Swal.fire({
                         title: 'Konfirmasi Vote',
@@ -106,7 +151,7 @@ new class extends Component
                             }
                         });
 
-                        await this.$wire.castVote(participantId);
+                        await this.$wire.castVote(participantId, this.deviceToken());
                         
                         Swal.close();
                     }

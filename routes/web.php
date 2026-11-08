@@ -11,24 +11,24 @@ Route::get('/', function () {
 });
 
 // 2. Autentikasi Admin
-Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
-Route::post('/admin/login', [AdminAuthController::class, 'login']);
-Route::get('/admin/logout', [AdminAuthController::class, 'logout']);
+Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
+Route::post('/admin/login', [AdminAuthController::class, 'login'])
+    ->middleware('throttle:admin-login')
+    ->name('admin.login.submit');
 
 // 3. Dashboard Admin (Dilindungi Session Login)
-Route::get('/admin/dashboard', function () {
-    if (!session('is_admin')) {
-        return redirect('/admin/login');
-    }
-    return view('admin');
+Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', fn () => view('admin'))->name('dashboard');
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+    Route::get('/export-excel', [ExportController::class, 'download'])->name('export');
+    Route::get('/votes', fn () => view('admin-votes'))->name('votes');
+    Route::get('/spinwheel', fn () => view('spinwheel-admin-page'))->name('spinwheel');
+    Route::get('/challenge', fn () => view('challenge-admin-page'))->name('challenge');
 });
 // Redirect /admin lama langsung ke /admin/dashboard atau login
 Route::get('/admin', function () {
     return redirect('/admin/dashboard');
 });
-
-// 4. Export Excel Admin
-Route::get('/admin/export-excel', [ExportController::class, 'download']);
 
 // 5. Juri Routes
 Route::get('/juri', function () { return view('juri-login'); });
@@ -41,20 +41,6 @@ Route::get('/leaderboard', function () { return view('leaderboard'); });
 // 7. Voting Penonton
 Route::get('/vote', function () { 
     return view('vote'); 
-});
-
-// 8. Rekap Voting (Admin)
-Route::get('/admin/votes', function () { 
-    if (!session('is_admin')) {
-        return redirect('/admin/login');
-    }
-    return view('admin-votes'); 
-});
-
-// 9. Modul Spinwheel
-Route::get('/admin/spinwheel', function () {
-    if (!session('is_admin')) return redirect('/admin/login');
-    return view('spinwheel-admin-page'); 
 });
 
 Route::get('/display/spinwheel', function () {
@@ -76,11 +62,6 @@ Route::get('/display/tradisional', function () {
 });
 
 // 10. Modul KORPRI Musical Challenge (Spinwheel Genre & Lagu)
-Route::get('/admin/challenge', function () {
-    if (!session('is_admin')) return redirect('/admin/login');
-    return view('challenge-admin-page');
-});
-
 Route::get('/display/challenge', function () {
     return view('challenge-display-page');
 });
@@ -90,7 +71,11 @@ Route::get('/display/challenge-results', function () {
 });
 
 Route::get('/api/live-score', function () {
-    $activeParticipant = Participant::with(['scores.details.aspect', 'scores.judge'])
+    $activeParticipant = Participant::with([
+        'scores' => fn ($query) => $query->where('is_locked', true),
+        'scores.details.aspect',
+        'scores.judge',
+    ])
                                   ->where('status', 'performing')
                                   ->first();
 
@@ -118,7 +103,9 @@ Route::get('/api/leaderboard-data', function () {
     $totalJudges = Judge::count() > 0 ? Judge::count() : 1;
 
     // Ambil semua peserta beserta skornya, lalu urutkan berdasarkan rata-rata nilai tertinggi
-    $participants = Participant::with('scores')->get()->map(function ($p) use ($totalJudges) {
+    $participants = Participant::with([
+        'scores' => fn ($query) => $query->where('is_locked', true),
+    ])->get()->map(function ($p) use ($totalJudges) {
         $avgScore = $p->scores->count() > 0 ? $p->scores->sum('total_score') / $totalJudges : 0;
         $p->average_score = round($avgScore, 2);
         return $p;

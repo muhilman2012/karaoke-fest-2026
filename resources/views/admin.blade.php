@@ -9,6 +9,12 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-100 antialiased">
+    <form method="POST" action="{{ route('admin.logout') }}" class="fixed right-4 top-4 z-50">
+        @csrf
+        <button type="submit" class="rounded-lg bg-red-600 px-4 py-2 font-bold text-white shadow hover:bg-red-700">
+            Logout Admin
+        </button>
+    </form>
     <livewire:admin-dashboard />
 </body>
 </html>

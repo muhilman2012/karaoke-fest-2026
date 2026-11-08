@@ -44,7 +44,9 @@ class WinnersSheet implements FromCollection, WithTitle, WithHeadings, ShouldAut
     {
         $totalJudges = Judge::count() > 0 ? Judge::count() : 1;
 
-        $participants = Participant::with('scores')->get()->map(function ($p) use ($totalJudges) {
+        $participants = Participant::with([
+            'scores' => fn ($query) => $query->where('is_locked', true),
+        ])->get()->map(function ($p) use ($totalJudges) {
             $avg = $p->scores->count() > 0 ? $p->scores->sum('total_score') / $totalJudges : 0;
             $p->avg_score = round($avg, 2);
             return $p;
@@ -116,7 +118,11 @@ class DetailedScoresSheet implements FromCollection, WithTitle, WithHeadings, Sh
 
     public function collection()
     {
-        $participants = Participant::with(['scores.details.aspect', 'scores.judge'])
+        $participants = Participant::with([
+                                    'scores' => fn ($query) => $query->where('is_locked', true),
+                                    'scores.details.aspect',
+                                    'scores.judge',
+                                 ])
                                  ->orderBy('order_number')
                                  ->get();
         $judges = Judge::all();

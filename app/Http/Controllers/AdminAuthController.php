@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AdminAuthController extends Controller
 {
@@ -17,18 +18,28 @@ class AdminAuthController extends Controller
 
     public function login(Request $request)
     {
-        // Password default yang Anda minta
-        if ($request->password === 'rkvetbz2') {
-            session(['is_admin' => true]);
-            return redirect('/admin/dashboard');
+        $credentials = $request->validate([
+            'password' => ['required', 'string', 'max:255'],
+        ]);
+        $passwordHash = config('admin.password_hash');
+
+        if (is_string($passwordHash) && Hash::check($credentials['password'], $passwordHash)) {
+            $request->session()->regenerate();
+            $request->session()->put('is_admin', true);
+
+            return redirect()->intended(route('admin.dashboard'));
         }
 
-        return back()->withErrors(['password' => 'Password Admin salah!']);
+        return back()
+            ->withErrors(['password' => 'Password Admin salah!'])
+            ->onlyInput();
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        session()->forget('is_admin');
-        return redirect('/admin/login');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('admin.login');
     }
 }

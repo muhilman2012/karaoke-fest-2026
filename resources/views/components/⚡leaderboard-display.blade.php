@@ -12,7 +12,9 @@ new class extends Component
     public function checkUpdates()
     {
         $currentTotal = 0;
-        $participants = Participant::with('scores')->get();
+        $participants = Participant::with([
+            'scores' => fn ($query) => $query->where('is_locked', true),
+        ])->get();
         
         // Jumlahkan semua nilai dari semua juri untuk semua peserta
         foreach ($participants as $p) {
@@ -31,7 +33,9 @@ new class extends Component
 
     public function with(): array
     {
-        $participants = Participant::with('scores')
+        $participants = Participant::with([
+            'scores' => fn ($query) => $query->where('is_locked', true),
+        ])
             ->orderBy('order_number')
             ->get()
             ->map(function ($participant) {

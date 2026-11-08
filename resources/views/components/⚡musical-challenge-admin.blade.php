@@ -8,6 +8,7 @@ use App\Models\Participant;
 use App\Models\Vote;
 use App\Models\Score;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
 new class extends Component
@@ -722,7 +723,8 @@ new class extends Component
     // Reset Total Seluruh Data Tantangan (Membutuhkan Otoritas Password)
     public function resetAllChallengeData($password)
     {
-        if (trim($password) !== 'rkvetbz2') {
+        $passwordHash = config('admin.password_hash');
+        if (!is_string($passwordHash) || !Hash::check((string) $password, $passwordHash)) {
             $this->dispatch('swal:error', [
                 'title' => 'Password Otoritas Salah!',
                 'text' => 'Password yang Anda masukkan salah. Proses reset total dibatalkan untuk keamanan data.',

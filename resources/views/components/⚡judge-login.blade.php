@@ -2,6 +2,7 @@
 
 use Livewire\Component;
 use App\Models\Judge;
+use Illuminate\Support\Facades\RateLimiter;
 
 new class extends Component
 {
@@ -10,14 +11,25 @@ new class extends Component
 
     public function login()
     {
+        $rateLimitKey = 'judge-login:' . request()->ip();
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
+            $this->errorMessage = 'Terlalu banyak percobaan. Coba kembali dalam ' . RateLimiter::availableIn($rateLimitKey) . ' detik.';
+            $this->pin = '';
+            return;
+        }
+
         // Cari juri berdasarkan passcode PIN
         $judge = Judge::where('passcode', $this->pin)->first();
 
         if ($judge) {
+            RateLimiter::clear($rateLimitKey);
+            request()->session()->regenerate();
             // Jika benar, simpan ID juri ke dalam Session dan arahkan ke form
             session(['judge_id' => $judge->id]);
             return redirect('/juri/form');
         } else {
+            RateLimiter::hit($rateLimitKey, 60);
             // Jika salah, tampilkan error dan kosongkan input
             $this->errorMessage = 'PIN salah. Silakan periksa kembali.';
             $this->pin = '';
