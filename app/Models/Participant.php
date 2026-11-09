@@ -20,4 +20,9 @@ class Participant extends Model
     {
         return $this->hasMany(Vote::class);
     }
+
+    public function supporterScores()
+    {
+        return $this->hasMany(SupporterScore::class);
+    }
 }

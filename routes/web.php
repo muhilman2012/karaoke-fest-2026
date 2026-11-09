@@ -24,6 +24,7 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/votes', fn () => view('admin-votes'))->name('votes');
     Route::get('/spinwheel', fn () => view('spinwheel-admin-page'))->name('spinwheel');
     Route::get('/challenge', fn () => view('challenge-admin-page'))->name('challenge');
+    Route::get('/supporter', fn () => view('admin-supporter'))->name('supporter');
 });
 // Redirect /admin lama langsung ke /admin/dashboard atau login
 Route::get('/admin', function () {
@@ -33,6 +34,10 @@ Route::get('/admin', function () {
 // 5. Juri Routes
 Route::get('/juri', function () { return view('juri-login'); });
 Route::get('/juri/form', function () { return view('juri'); });
+
+// Penilaian Best Supporter (terpisah dari penilaian karaoke)
+Route::get('/juri-supporter', fn () => view('supporter-login'))->name('supporter.login');
+Route::get('/juri-supporter/form', fn () => view('supporter-form'))->name('supporter.form');
 
 // 6. Display Publik (Live Score & Leaderboard)
 Route::get('/live', function () { return view('live'); });

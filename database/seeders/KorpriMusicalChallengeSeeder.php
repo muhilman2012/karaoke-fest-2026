@@ -6,6 +6,7 @@ use App\Models\Aspect;
 use App\Models\ChallengeParticipant;
 use App\Models\Judge;
 use App\Models\Participant;
+use App\Models\SupporterJudge;
 use Illuminate\Database\Seeder;
 
 class KorpriMusicalChallengeSeeder extends Seeder
@@ -90,5 +91,17 @@ class KorpriMusicalChallengeSeeder extends Seeder
         }
 
         Aspect::whereNotIn('name', array_column($aspects, 'name'))->delete();
+
+        $supporterJudges = [
+            ['name' => 'Juri 1', 'affiliation' => 'Unsur PKK Kemayoran', 'passcode' => '2101'],
+            ['name' => 'Juri 2', 'affiliation' => 'DPP KORPRI (Pak Nandang)', 'passcode' => '2102'],
+            ['name' => 'Juri 3', 'affiliation' => 'Unsur Setwapres (Pak Yayat)', 'passcode' => '2103'],
+        ];
+
+        foreach ($supporterJudges as $judge) {
+            SupporterJudge::updateOrCreate(['passcode' => $judge['passcode']], $judge);
+        }
+
+        SupporterJudge::whereNotIn('passcode', array_column($supporterJudges, 'passcode'))->delete();
     }
 }

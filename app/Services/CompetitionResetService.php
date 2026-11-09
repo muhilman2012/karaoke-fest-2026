@@ -6,6 +6,7 @@ use App\Models\Participant;
 use App\Models\Score;
 use App\Models\ScoreDetail;
 use App\Models\Vote;
+use App\Models\SupporterScore;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -17,6 +18,7 @@ class CompetitionResetService
             ScoreDetail::query()->delete();
             Score::query()->delete();
             Vote::query()->delete();
+            SupporterScore::query()->delete();
 
             Participant::query()->update([
                 'status' => 'waiting',

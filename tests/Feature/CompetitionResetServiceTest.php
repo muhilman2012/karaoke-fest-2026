@@ -6,6 +6,8 @@ use App\Models\Judge;
 use App\Models\Participant;
 use App\Models\Score;
 use App\Models\Vote;
+use App\Models\SupporterJudge;
+use App\Models\SupporterScore;
 use App\Services\CompetitionResetService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -42,6 +44,16 @@ class CompetitionResetServiceTest extends TestCase
             'participant_id' => $second->id,
             'device_token' => '244467fc-7cf2-4b59-b76d-facb8b7c21d5',
         ]);
+        $supporterJudge = SupporterJudge::create([
+            'name' => 'Juri 1',
+            'passcode' => '2101',
+        ]);
+        SupporterScore::create([
+            'participant_id' => $first->id,
+            'supporter_judge_id' => $supporterJudge->id,
+            'score' => 9,
+            'is_locked' => true,
+        ]);
         Cache::forever('voting_is_open', true);
 
         app(CompetitionResetService::class)->resetScoresAndVotes();
@@ -49,6 +61,7 @@ class CompetitionResetServiceTest extends TestCase
         $this->assertDatabaseCount('participants', 2);
         $this->assertDatabaseCount('scores', 0);
         $this->assertDatabaseCount('votes', 0);
+        $this->assertDatabaseCount('supporter_scores', 0);
         $this->assertDatabaseHas('participants', [
             'id' => $first->id,
             'song_title' => 'Lagu Tetap Ada',

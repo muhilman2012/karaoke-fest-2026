@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Aspect;
 use App\Models\Judge;
 use App\Models\Participant;
+use App\Models\SupporterJudge;
 use Database\Seeders\KorpriMusicalChallengeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -21,6 +22,7 @@ class KorpriMusicalChallengeSeederTest extends TestCase
         $this->assertSame(11, Participant::count());
         $this->assertSame(3, Judge::count());
         $this->assertSame(3, Aspect::count());
+        $this->assertSame(3, SupporterJudge::count());
         $this->assertSame(100, Aspect::sum('percentage'));
 
         $this->assertDatabaseHas('participants', [
@@ -40,6 +42,11 @@ class KorpriMusicalChallengeSeederTest extends TestCase
         $this->assertDatabaseHas('judges', [
             'name' => 'Hedi Yunus',
             'passcode' => '1103',
+        ]);
+        $this->assertDatabaseHas('supporter_judges', [
+            'name' => 'Juri 2',
+            'affiliation' => 'DPP KORPRI (Pak Nandang)',
+            'passcode' => '2102',
         ]);
     }
 }

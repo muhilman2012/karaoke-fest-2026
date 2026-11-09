@@ -225,6 +225,9 @@ new class extends Component
             <h1 class="text-3xl font-black text-gray-800">Administrator Panel</h1>
             
             <div class="flex flex-wrap items-center gap-3">
+                <a href="/admin/supporter" target="_blank" class="bg-orange-600 hover:bg-orange-700 text-white font-bold px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transition text-sm">
+                    <span>📣</span> Best Supporter
+                </a>
                 <button type="button" onclick="confirmResetDashboard()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transition text-sm cursor-pointer">
                     <span>⚠️</span> Reset Nilai & Voting
                 </button>
@@ -240,6 +243,20 @@ new class extends Component
                 <a href="/admin/export-excel" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transition text-sm" style="background-color: #059669; color: #ffffff;">
                     <span>📊</span> Download Rekap Excel (.xlsx)
                 </a>
+
+                <form method="POST" action="{{ route('admin.logout') }}" class="inline-flex">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-3 text-sm font-black text-red-600 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:shadow-md">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-100" aria-hidden="true">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                <path d="m16 17 5-5-5-5" />
+                                <path d="M21 12H9" />
+                            </svg>
+                        </span>
+                        <span>Logout</span>
+                    </button>
+                </form>
             </div>
         </div>
 
