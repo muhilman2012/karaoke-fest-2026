@@ -5,6 +5,9 @@ namespace Tests\Feature;
 use App\Models\Participant;
 use App\Models\Vote;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
+use App\Services\VotingSessionService;
 use Tests\TestCase;
 
 class LiveVoteDisplayTest extends TestCase
@@ -28,5 +31,21 @@ class LiveVoteDisplayTest extends TestCase
             ->assertSeeText('LIVE HASIL VOTING')
             ->assertSeeText('Instansi Favorit')
             ->assertSeeText('1 suara');
+    }
+
+    public function test_live_vote_display_shows_the_active_voting_countdown(): void
+    {
+        Cache::flush();
+        Carbon::setTestNow('2026-11-11 10:00:00');
+        app(VotingSessionService::class)->start(2);
+
+        try {
+            $this->get('/live-votes')
+                ->assertOk()
+                ->assertSeeText('Sisa Waktu')
+                ->assertSeeText('02:00');
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 }

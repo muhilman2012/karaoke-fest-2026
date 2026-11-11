@@ -9,6 +9,7 @@ new class extends Component
 {
     public function with(): array
     {
+        $votingStatus = app(VotingSessionService::class)->status();
         $participants = Participant::withCount('votes')
             ->orderByDesc('votes_count')
             ->orderBy('order_number')
@@ -25,13 +26,14 @@ new class extends Component
             'participants' => $participants,
             'totalVotes' => $totalVotes,
             'leader' => $totalVotes > 0 ? $participants->first() : null,
-            'votingIsOpen' => app(VotingSessionService::class)->status()['is_open'],
+            'votingIsOpen' => $votingStatus['is_open'],
+            'votingRemainingSeconds' => $votingStatus['remaining_seconds'],
         ];
     }
 };
 ?>
 
-<div class="relative h-screen w-screen overflow-hidden bg-slate-950 text-white" wire:poll.3s>
+<div class="relative h-screen w-screen overflow-hidden bg-slate-950 text-white" wire:poll.1s>
     <div class="pointer-events-none absolute inset-0">
         <div class="absolute -left-[10vw] -top-[20vh] h-[75vh] w-[50vw] rounded-full bg-indigo-600/25 blur-[100px]"></div>
         <div class="absolute -right-[10vw] bottom-[-25vh] h-[70vh] w-[45vw] rounded-full bg-pink-600/20 blur-[110px]"></div>
@@ -56,6 +58,19 @@ new class extends Component
             </div>
 
             <div class="flex shrink-0 items-center gap-[1.2vw]">
+                <div class="min-w-[11vw] rounded-[2vh] border px-[1.5vw] py-[1.3vh] text-center shadow-xl {{ $votingRemainingSeconds !== null && $votingIsOpen ? 'border-cyan-300/30 bg-cyan-400/10 shadow-cyan-950/40' : 'border-white/10 bg-white/[0.06] shadow-slate-950/40' }}">
+                    <p class="text-[1.15vh] font-black uppercase tracking-[0.16em] {{ $votingRemainingSeconds !== null && $votingIsOpen ? 'text-cyan-300' : 'text-slate-400' }}">Sisa Waktu</p>
+                    @if($votingRemainingSeconds !== null && $votingIsOpen)
+                        <p class="mt-[0.25vh] font-mono text-[3.8vh] font-black leading-none tabular-nums text-white">
+                            {{ sprintf('%02d:%02d', intdiv($votingRemainingSeconds, 60), $votingRemainingSeconds % 60) }}
+                        </p>
+                    @elseif($votingIsOpen)
+                        <p class="mt-[0.45vh] text-[1.7vh] font-black leading-none text-emerald-300">TANPA TIMER</p>
+                    @else
+                        <p class="mt-[0.45vh] text-[2.1vh] font-black leading-none text-red-300">00:00</p>
+                    @endif
+                </div>
+
                 @if($leader)
                     <div class="hidden rounded-[2vh] border border-amber-300/20 bg-amber-400/10 px-[1.4vw] py-[1.5vh] text-right lg:block">
                         <p class="text-[1.2vh] font-black uppercase tracking-wider text-amber-300">Peringkat Teratas</p>
@@ -112,7 +127,7 @@ new class extends Component
         </main>
 
         <footer class="flex h-[4vh] shrink-0 items-center justify-between border-t border-white/10 pt-[1vh] text-[1.2vh] font-semibold text-slate-500">
-            <span>Hasil diperbarui otomatis setiap 3 detik</span>
+            <span>Hasil dan timer diperbarui otomatis</span>
             <span>https://bit.ly/korpri-musical-2026</span>
         </footer>
     </div>
