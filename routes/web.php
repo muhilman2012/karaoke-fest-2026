@@ -42,6 +42,7 @@ Route::get('/juri-supporter/form', fn () => view('supporter-form'))->name('suppo
 // 6. Display Publik (Live Score & Leaderboard)
 Route::get('/live', function () { return view('live'); });
 Route::get('/leaderboard', function () { return view('leaderboard'); });
+Route::get('/live-votes', fn () => view('live-votes'))->name('live-votes');
 
 // 7. Voting Penonton
 Route::get('/vote', function () { 

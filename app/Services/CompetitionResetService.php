@@ -7,7 +7,6 @@ use App\Models\Score;
 use App\Models\ScoreDetail;
 use App\Models\Vote;
 use App\Models\SupporterScore;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class CompetitionResetService
@@ -28,6 +27,6 @@ class CompetitionResetService
             $this->masterData->synchronizeParticipants(resetStatuses: true);
         });
 
-        Cache::forever('voting_is_open', false);
+        app(VotingSessionService::class)->close();
     }
 }

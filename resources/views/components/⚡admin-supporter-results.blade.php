@@ -11,12 +11,14 @@ new class extends Component
         $totalJudges = SupporterJudge::count() ?: 3;
 
         $participants = Participant::with([
-            'supporterScores' => fn ($query) => $query->where('is_locked', true),
+            'supporterScores',
             'supporterScores.judge',
         ])->orderBy('order_number')->get()->map(function ($participant) use ($totalJudges) {
-            $participant->supporter_total = $participant->supporterScores->sum('score');
+            $lockedScores = $participant->supporterScores->where('is_locked', true);
+            $participant->supporter_total = $lockedScores->sum('score');
             $participant->supporter_average = round($participant->supporter_total / $totalJudges, 2);
-            $participant->supporter_judges_count = $participant->supporterScores->count();
+            $participant->supporter_judges_count = $lockedScores->count();
+            $participant->supporter_drafts_count = $participant->supporterScores->where('is_locked', false)->count();
             return $participant;
         })->sortByDesc('supporter_average')->values();
 
@@ -47,7 +49,7 @@ new class extends Component
             @foreach($judges as $judge)
                 <div class="rounded-2xl bg-white p-4 shadow-sm">
                     <p class="font-black text-slate-800">{{ $judge->name }}</p>
-                    <p class="mt-1 text-sm text-slate-500">{{ $judge->affiliation }}</p>
+                    <p class="mt-1 text-sm text-slate-500">{{ preg_replace('/\s*\([^)]*\)\s*/', '', $judge->affiliation) }}</p>
                 </div>
             @endforeach
         </div>
@@ -75,14 +77,24 @@ new class extends Component
                             </td>
                             @foreach($judges as $judge)
                                 @php($judgeScore = $participant->supporterScores->firstWhere('supporter_judge_id', $judge->id))
-                                <td class="p-4 text-center text-xl font-black {{ $judgeScore ? 'text-orange-600' : 'text-slate-300' }}">
-                                    {{ $judgeScore?->score ?? '–' }}
+                                <td class="p-4 text-center">
+                                    <span class="block text-xl font-black {{ $judgeScore ? 'text-orange-600' : 'text-slate-300' }}">
+                                        {{ $judgeScore?->score ?? '–' }}
+                                    </span>
+                                    @if($judgeScore)
+                                        <span class="mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-black {{ $judgeScore->is_locked ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }}">
+                                            {{ $judgeScore->is_locked ? 'Terkunci' : 'Draft' }}
+                                        </span>
+                                    @endif
                                 </td>
                             @endforeach
                             <td class="p-4 text-center">
                                 <span class="rounded-full px-3 py-1 text-xs font-black {{ $participant->supporter_judges_count === $totalJudges ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }}">
                                     {{ $participant->supporter_judges_count }}/{{ $totalJudges }} juri
                                 </span>
+                                @if($participant->supporter_drafts_count > 0)
+                                    <span class="mt-1 block text-[10px] font-bold text-yellow-600">{{ $participant->supporter_drafts_count }} draft tersimpan</span>
+                                @endif
                             </td>
                             <td class="p-4 text-center">
                                 <span class="text-2xl font-black {{ $participant->supporter_judges_count === $totalJudges ? 'text-orange-600' : 'text-slate-400' }}">

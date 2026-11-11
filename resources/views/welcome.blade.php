@@ -56,7 +56,7 @@
 
             <section aria-labelledby="penilaian-juri">
                 <div class="mb-5"><p class="text-xs font-black uppercase tracking-[0.18em] text-orange-400">Penilaian</p><h2 id="penilaian-juri" class="mt-1 text-2xl font-black">Panel Juri</h2><p class="mt-1 text-sm text-slate-500">Gunakan halaman sesuai tugas penilaian masing-masing juri.</p></div>
-                <div class="grid gap-5 md:grid-cols-2">
+                <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                     <a href="/juri" class="group rounded-3xl border border-indigo-400/20 bg-slate-900/80 p-6 transition hover:-translate-y-1 hover:border-indigo-400/60 hover:bg-indigo-500/10 sm:p-7">
                         <div class="flex items-start gap-4"><div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/15 text-3xl">🎤</div><div><p class="text-[10px] font-black uppercase tracking-[0.16em] text-indigo-300">Penilaian Peserta</p><h3 class="mt-1 text-xl font-black">Juri Karaoke</h3><p class="mt-2 text-sm leading-relaxed text-slate-400">Teknik kualitas vokal, pembagian peran, dan kreativitas penampilan.</p><span class="mt-4 inline-flex items-center gap-2 text-sm font-black text-indigo-300">Masuk dengan PIN <span class="transition group-hover:translate-x-1">→</span></span></div></div>
                     </a>
@@ -71,6 +71,7 @@
                 <div class="grid gap-5 md:grid-cols-2">
                     <a href="/live" target="_blank" class="group flex items-center gap-5 rounded-3xl border border-pink-400/20 bg-slate-900/80 p-6 transition hover:border-pink-400/60 hover:bg-pink-500/10"><div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-pink-500/15 text-3xl">📊</div><div class="flex-1"><h3 class="text-xl font-black">Live Score</h3><p class="mt-1 text-sm text-slate-400">Pantau nilai peserta yang sedang tampil.</p></div><span class="text-pink-300 transition group-hover:translate-x-1">↗</span></a>
                     <a href="/display/leaderboard" target="_blank" class="group flex items-center gap-5 rounded-3xl border border-amber-400/20 bg-slate-900/80 p-6 transition hover:border-amber-400/60 hover:bg-amber-500/10"><div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 text-3xl">🏆</div><div class="flex-1"><h3 class="text-xl font-black">Live Leaderboard</h3><p class="mt-1 text-sm text-slate-400">Klasemen dari nilai juri yang telah dikunci.</p></div><span class="text-amber-300 transition group-hover:translate-x-1">↗</span></a>
+                    <a href="/live-votes" target="_blank" class="group flex items-center gap-5 rounded-3xl border border-cyan-400/20 bg-slate-900/80 p-6 transition hover:border-cyan-400/60 hover:bg-cyan-500/10"><div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-cyan-500/15 text-3xl">🗳️</div><div class="flex-1"><h3 class="text-xl font-black">Live Hasil Voting</h3><p class="mt-1 text-sm text-slate-400">Peringkat suara peserta favorit secara langsung.</p></div><span class="text-cyan-300 transition group-hover:translate-x-1">↗</span></a>
                 </div>
             </section>
 

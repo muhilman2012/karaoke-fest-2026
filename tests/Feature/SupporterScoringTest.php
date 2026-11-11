@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Participant;
 use App\Models\SupporterJudge;
+use App\Models\SupporterScore;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -35,8 +36,10 @@ class SupporterScoringTest extends TestCase
             ->assertSet('score', 9)
             ->call('saveDraft')
             ->assertSet('is_locked', false)
+            ->assertSet('is_draft_saved', true)
             ->call('lockScore')
-            ->assertSet('is_locked', true);
+            ->assertSet('is_locked', true)
+            ->assertSet('is_draft_saved', false);
 
         $this->assertDatabaseHas('supporter_scores', [
             'participant_id' => $participant->id,
@@ -51,5 +54,34 @@ class SupporterScoringTest extends TestCase
         $this->get('/juri-supporter')->assertOk();
         $this->get('/juri-supporter/form')->assertRedirect(route('supporter.login'));
         $this->get('/admin/supporter')->assertRedirect(route('admin.login'));
+    }
+
+    public function test_admin_recap_displays_draft_without_counting_it_as_final_score(): void
+    {
+        $participant = Participant::create([
+            'name' => 'Instansi Draft',
+            'song_title' => 'Lagu Draft',
+            'order_number' => 1,
+            'status' => 'waiting',
+        ]);
+        $judge = SupporterJudge::create([
+            'name' => 'Juri 2',
+            'affiliation' => 'DPP KORPRI',
+            'passcode' => '2102',
+        ]);
+        SupporterScore::create([
+            'participant_id' => $participant->id,
+            'supporter_judge_id' => $judge->id,
+            'score' => 8,
+            'is_locked' => false,
+        ]);
+
+        $this->withSession(['is_admin' => true])
+            ->get('/admin/supporter')
+            ->assertOk()
+            ->assertSee('Instansi Draft')
+            ->assertSee('Draft')
+            ->assertSee('1 draft tersimpan')
+            ->assertSee('0.00');
     }
 }

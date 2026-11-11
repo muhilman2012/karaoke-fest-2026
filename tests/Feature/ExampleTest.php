@@ -21,6 +21,7 @@ class ExampleTest extends TestCase
             ->assertSeeText('Layar Panggung & Proyektor')
             ->assertSee('href="/admin"', false)
             ->assertSee('href="/juri-supporter"', false)
+            ->assertSee('href="/live-votes"', false)
             ->assertSee('href="/vote"', false);
     }
 }

@@ -11,6 +11,7 @@ new class extends Component
     public $participant_id = null;
     public $score = null;
     public $is_locked = false;
+    public $is_draft_saved = false;
     public $show_participant_list = false;
     public $is_editing_mode = false;
 
@@ -36,6 +37,7 @@ new class extends Component
             $this->participant_id = null;
             $this->score = null;
             $this->is_locked = false;
+            $this->is_draft_saved = false;
             return;
         }
 
@@ -48,6 +50,9 @@ new class extends Component
     public function chooseScore(int $score)
     {
         if (!$this->is_locked && $score >= 6 && $score <= 10) {
+            if ((int) $this->score !== $score) {
+                $this->is_draft_saved = false;
+            }
             $this->score = $score;
         }
     }
@@ -55,12 +60,14 @@ new class extends Component
     public function saveDraft()
     {
         $this->saveScore(false);
+        $this->is_draft_saved = !$this->is_locked;
         session()->flash('success', 'Nilai sementara berhasil disimpan.');
     }
 
     public function lockScore()
     {
         $this->saveScore(true);
+        $this->is_draft_saved = false;
         session()->flash('success', 'Nilai Best Supporter berhasil dikunci.');
     }
 
@@ -90,6 +97,7 @@ new class extends Component
         );
 
         $this->is_locked = $locked;
+        $this->is_draft_saved = !$locked;
     }
 
     public function toggleParticipantList()
@@ -125,6 +133,7 @@ new class extends Component
 
         $this->score = $record?->score;
         $this->is_locked = (bool) $record?->is_locked;
+        $this->is_draft_saved = (bool) $record && !$record->is_locked;
     }
 
     public function logout()
@@ -215,6 +224,13 @@ new class extends Component
 
                     @if(session()->has('success'))
                         <div class="mb-5 rounded-xl bg-green-100 p-4 text-center font-bold text-green-700">{{ session('success') }}</div>
+                    @endif
+
+                    @if($is_draft_saved && !$is_locked)
+                        <div class="mb-5 rounded-2xl border border-yellow-200 bg-yellow-50 p-4 text-center">
+                            <p class="font-black text-yellow-800">📝 Nilai {{ $score }} tersimpan sementara</p>
+                            <p class="mt-1 text-xs font-semibold text-yellow-700">Nilai masih dapat diubah dan belum menjadi nilai akhir.</p>
+                        </div>
                     @endif
 
                     @if($is_locked)

@@ -9,11 +9,14 @@ use App\Models\Vote;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use App\Services\CompetitionResetService;
+use App\Services\VotingSessionService;
 
 new class extends Component
 {
     public $activeTab = 'live'; 
     public $voting_is_open = true;
+    public $voting_duration_minutes = 5;
+    public $voting_remaining_seconds = null;
 
     // State untuk Modal Edit / Create
     public $showEditModal = false;
@@ -30,7 +33,7 @@ new class extends Component
 
     public function mount()
     {
-        $this->voting_is_open = Cache::get('voting_is_open', true);
+        $this->refreshVotingStatus();
 
         $defaultGames = [
             'estafet_bola' => ['name' => 'Estafet Bola', 'r1' => '', 'r2' => '', 'r3' => ''],
@@ -50,8 +53,43 @@ new class extends Component
 
     public function toggleVoting()
     {
-        $this->voting_is_open = !$this->voting_is_open;
-        Cache::forever('voting_is_open', $this->voting_is_open);
+        $voting = app(VotingSessionService::class);
+
+        if ($this->voting_is_open) {
+            $voting->close();
+        } else {
+            $voting->open();
+        }
+
+        $this->refreshVotingStatus();
+    }
+
+    public function startVotingCountdown()
+    {
+        $validated = $this->validate([
+            'voting_duration_minutes' => ['required', 'integer', 'min:1', 'max:1440'],
+        ], [
+            'voting_duration_minutes.required' => 'Masukkan durasi voting.',
+            'voting_duration_minutes.integer' => 'Durasi harus berupa angka menit.',
+            'voting_duration_minutes.min' => 'Durasi minimal 1 menit.',
+            'voting_duration_minutes.max' => 'Durasi maksimal 1.440 menit.',
+        ]);
+
+        app(VotingSessionService::class)->start((int) $validated['voting_duration_minutes']);
+        $this->refreshVotingStatus();
+
+        $this->dispatch('swal:success', [
+            'title' => 'Voting Dimulai!',
+            'text' => "Voting otomatis ditutup dalam {$this->voting_duration_minutes} menit.",
+            'icon' => 'success',
+        ]);
+    }
+
+    public function refreshVotingStatus()
+    {
+        $status = app(VotingSessionService::class)->status();
+        $this->voting_is_open = $status['is_open'];
+        $this->voting_remaining_seconds = $status['remaining_seconds'];
     }
 
     public function setTab($tab)
@@ -438,7 +476,7 @@ new class extends Component
 
         <!-- TAB: HASIL VOTING -->
         @if($activeTab === 'voting')
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-6 overflow-x-auto" wire:poll.5s>
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-6 overflow-x-auto" wire:poll.1s="refreshVotingStatus">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div>
                     <h2 class="text-xl font-bold text-gray-800">🏆 Rekap Voting Penonton</h2>
@@ -453,6 +491,39 @@ new class extends Component
                         <span class="text-xs font-bold block uppercase tracking-wider">Total Suara</span>
                         <span class="text-3xl font-black">{{ $totalVotes }}</span>
                     </div>
+                </div>
+            </div>
+
+            <div class="mb-6 grid gap-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-4 lg:grid-cols-[1fr_auto] lg:items-end">
+                <div>
+                    <label for="voting-duration" class="mb-2 block text-sm font-black text-indigo-900">Durasi voting otomatis (menit)</label>
+                    <div class="flex max-w-md gap-2">
+                        <input id="voting-duration" type="number" inputmode="numeric" min="1" max="1440"
+                            wire:model.live.debounce.300ms="voting_duration_minutes"
+                            class="min-w-0 flex-1 rounded-xl border border-indigo-200 bg-white px-4 py-3 text-lg font-black text-slate-800 focus:border-indigo-500 focus:ring-indigo-500"
+                            placeholder="Contoh: 10">
+                        <button type="button" wire:click="startVotingCountdown"
+                            class="rounded-xl bg-indigo-600 px-5 py-3 font-black text-white shadow transition hover:bg-indigo-700">
+                            ▶ Mulai
+                        </button>
+                    </div>
+                    @error('voting_duration_minutes')
+                        <p class="mt-2 text-sm font-bold text-red-600">{{ $message }}</p>
+                    @enderror
+                    <p class="mt-2 text-xs font-semibold text-indigo-600">Klik Mulai untuk membuka voting dan menutupnya otomatis saat waktu habis.</p>
+                </div>
+
+                <div class="min-w-[220px] rounded-2xl bg-slate-900 px-6 py-4 text-center text-white shadow-lg">
+                    <span class="block text-xs font-black uppercase tracking-[0.18em] text-slate-400">Sisa Waktu</span>
+                    @if($voting_remaining_seconds !== null && $voting_is_open)
+                        <span class="mt-1 block font-mono text-4xl font-black tabular-nums">
+                            {{ sprintf('%02d:%02d', intdiv($voting_remaining_seconds, 60), $voting_remaining_seconds % 60) }}
+                        </span>
+                    @else
+                        <span class="mt-1 block text-xl font-black {{ $voting_is_open ? 'text-green-400' : 'text-red-400' }}">
+                            {{ $voting_is_open ? 'Tanpa Timer' : 'Ditutup' }}
+                        </span>
+                    @endif
                 </div>
             </div>
             

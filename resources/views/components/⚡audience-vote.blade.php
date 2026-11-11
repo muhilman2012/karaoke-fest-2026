@@ -5,9 +5,9 @@ use App\Models\Participant;
 use App\Models\Vote;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\RateLimiter;
+use App\Services\VotingSessionService;
 
 new class extends Component
 {
@@ -18,14 +18,14 @@ new class extends Component
 
     public function mount()
     {
-        $this->voting_is_open = Cache::get('voting_is_open', true);
+        $this->voting_is_open = app(VotingSessionService::class)->status()['is_open'];
         $this->participants = Participant::orderBy('order_number')->get();
         $this->checkVote();
     }
 
     public function checkStatus()
     {
-        $this->voting_is_open = Cache::get('voting_is_open', true);
+        $this->voting_is_open = app(VotingSessionService::class)->status()['is_open'];
         $this->participants = Participant::orderBy('order_number')->get();
     }
 
@@ -45,7 +45,7 @@ new class extends Component
 
     public function castVote($participantId, $deviceToken = null)
     {
-        $this->voting_is_open = Cache::get('voting_is_open', true);
+        $this->voting_is_open = app(VotingSessionService::class)->status()['is_open'];
         if (!$this->voting_is_open) return;
         if ($this->hasVoted) return;
 

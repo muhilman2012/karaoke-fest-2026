@@ -64,8 +64,8 @@ class KorpriMusicalChallengeSeeder extends Seeder
 
         $supporterJudges = [
             ['name' => 'Juri 1', 'affiliation' => 'Unsur PKK Kemayoran', 'passcode' => '2101'],
-            ['name' => 'Juri 2', 'affiliation' => 'DPP KORPRI (Pak Nandang)', 'passcode' => '2102'],
-            ['name' => 'Juri 3', 'affiliation' => 'Unsur Setwapres (Pak Yayat)', 'passcode' => '2103'],
+            ['name' => 'Juri 2', 'affiliation' => 'DPP KORPRI', 'passcode' => '2102'],
+            ['name' => 'Juri 3', 'affiliation' => 'Unsur Setwapres', 'passcode' => '2103'],
         ];
 
         foreach ($supporterJudges as $judge) {

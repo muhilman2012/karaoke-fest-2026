@@ -53,7 +53,7 @@ class KorpriMusicalChallengeSeederTest extends TestCase
         ]);
         $this->assertDatabaseHas('supporter_judges', [
             'name' => 'Juri 2',
-            'affiliation' => 'DPP KORPRI (Pak Nandang)',
+            'affiliation' => 'DPP KORPRI',
             'passcode' => '2102',
         ]);
     }

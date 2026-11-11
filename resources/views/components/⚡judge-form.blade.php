@@ -21,7 +21,7 @@ new class extends Component
     {
         $rules = [];
         foreach (Aspect::all() as $aspect) {
-            $rules['aspectScores.' . $aspect->id] = 'required|numeric|min:10|max:100';
+            $rules['aspectScores.' . $aspect->id] = 'required|numeric|min:60|max:100';
         }
         return $rules;
     }
@@ -31,7 +31,7 @@ new class extends Component
         return [
             'aspectScores.*.required' => 'Nilai aspek ini tidak boleh kosong.',
             'aspectScores.*.numeric' => 'Nilai harus berupa angka.',
-            'aspectScores.*.min' => 'Pemberian nilai belum sesuai! Minimal nilai adalah 10.',
+            'aspectScores.*.min' => 'Pemberian nilai belum sesuai! Minimal nilai adalah 60.',
             'aspectScores.*.max' => 'Pemberian nilai belum sesuai! Maksimal nilai adalah 100.',
         ];
     }
@@ -273,17 +273,29 @@ new class extends Component
                             </div>
                         @endif
 
+                        <div class="rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-4 text-center">
+                            <p class="font-black text-indigo-800">Rentang nilai setiap aspek: 60–100</p>
+                            <p class="mt-1 text-sm text-indigo-600">Nilai di luar rentang tersebut tidak dapat disimpan.</p>
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             @foreach($aspects as $index => $aspect)
-                            <div class="bg-gray-50 p-6 rounded-2xl border-2 @error('aspectScores.'.$aspect->id) border-red-400 @else border-gray-100 @enderror">
+                            <div x-data="{ warning: '' }" class="bg-gray-50 p-6 rounded-2xl border-2 @error('aspectScores.'.$aspect->id) border-red-400 @else border-gray-100 @enderror">
                                 <label class="block text-xl font-bold text-gray-700 mb-1">
                                     {{ $index + 1 }}. {{ $aspect->name }} ({{ $aspect->percentage }}%)
                                 </label>
                                 <p class="text-sm text-gray-500 mb-4">{{ $aspect->description }}</p>
                                 
-                                <input type="number" inputmode="numeric" min="10" max="100" 
-                                    wire:model="aspectScores.{{ $aspect->id }}" 
+                                <input type="number" inputmode="numeric" min="60" max="100"
+                                    wire:model="aspectScores.{{ $aspect->id }}"
+                                    x-on:input="
+                                        const raw = $event.target.value;
+                                        const value = Number(raw);
+                                        warning = raw === '' ? '' : (value < 60 ? 'Nilai minimal 60.' : (value > 100 ? 'Nilai maksimal 100.' : ''));
+                                    "
                                     class="w-full text-center text-5xl font-black text-indigo-600 p-4 rounded-xl border-2 @error('aspectScores.'.$aspect->id) border-red-500 bg-red-50 @else border-gray-300 @enderror focus:border-indigo-500">
+
+                                <p x-cloak x-show="warning" x-text="'⚠️ ' + warning" class="mt-3 text-sm font-bold text-red-500"></p>
                                 
                                 @error('aspectScores.'.$aspect->id)
                                     <p class="mt-3 text-red-500 text-sm font-bold animate-pulse">
