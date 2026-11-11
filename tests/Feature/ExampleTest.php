@@ -14,6 +14,13 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $response->assertOk()
+            ->assertSeeText('Admin & Voting')
+            ->assertSeeText('Juri Best Supporter')
+            ->assertSeeText('Monitoring Langsung')
+            ->assertSeeText('Layar Panggung & Proyektor')
+            ->assertSee('href="/admin"', false)
+            ->assertSee('href="/juri-supporter"', false)
+            ->assertSee('href="/vote"', false);
     }
 }

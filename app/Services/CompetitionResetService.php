@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class CompetitionResetService
 {
+    public function __construct(
+        private readonly CompetitionMasterDataService $masterData,
+    ) {}
+
     public function resetScoresAndVotes(): void
     {
         DB::transaction(function (): void {
@@ -20,14 +24,8 @@ class CompetitionResetService
             Vote::query()->delete();
             SupporterScore::query()->delete();
 
-            Participant::query()->update([
-                'status' => 'waiting',
-                'is_favorite' => false,
-            ]);
-
-            Participant::where('order_number', 1)->update([
-                'status' => 'performing',
-            ]);
+            Participant::query()->update(['is_favorite' => false]);
+            $this->masterData->synchronizeParticipants(resetStatuses: true);
         });
 
         Cache::forever('voting_is_open', false);

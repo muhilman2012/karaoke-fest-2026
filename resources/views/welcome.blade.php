@@ -8,147 +8,92 @@
     <link rel="apple-touch-icon" href="{{ asset('logo/setneg.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 min-h-screen text-white font-sans flex flex-col items-center justify-center p-6">
-
-    <div class="max-w-4xl w-full text-center mt-10 mb-10">
-        <div class="mb-12">
-            <span class="bg-indigo-500/20 border border-indigo-500 text-indigo-300 px-4 py-1.5 rounded-full text-sm font-bold tracking-widest uppercase">
-                Selamat Datang
-            </span>
-            <h1 class="text-4xl sm:text-6xl md:text-7xl font-black mt-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-pink-300">
-                KORPRI MUSICAL CHALLENGE 2026
-            </h1>
-            <p class="text-gray-400 text-base md:text-lg mt-3">Silakan pilih menu navigasi di bawah ini sesuai peran Anda.</p>
-        </div>
-
-        <!-- Grid Menu Pilihan -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            
-            <!-- Menu Juri -->
-            <a href="/juri" class="group bg-slate-800/80 hover:bg-indigo-600 border border-slate-700 hover:border-indigo-500 p-8 rounded-3xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-left flex items-center gap-6">
-                <div class="text-5xl bg-indigo-500/20 p-4 rounded-2xl group-hover:bg-white/20 transition">👨‍⚖️</div>
-                <div>
-                    <h2 class="text-2xl font-black group-hover:text-white">Panel Juri</h2>
-                    <p class="text-gray-400 text-sm group-hover:text-indigo-100 mt-1">Masuk menggunakan PIN Passcode Juri</p>
-                </div>
-            </a>
-
-            <!-- Menu Live Score -->
-            <a href="/live" target="_blank" class="group bg-slate-800/80 hover:bg-pink-600 border border-slate-700 hover:border-pink-500 p-8 rounded-3xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-left flex items-center gap-6">
-                <div class="text-5xl bg-pink-500/20 p-4 rounded-2xl group-hover:bg-white/20 transition">📺</div>
-                <div>
-                    <h2 class="text-2xl font-black group-hover:text-white">Live Score Layar</h2>
-                    <p class="text-gray-400 text-sm group-hover:text-pink-100 mt-1">Tampilan skor sementara untuk panggung</p>
-                </div>
-            </a>
-
-            <!-- Menu Leaderboard -->
-            <a href="/display/leaderboard" target="_blank" class="group bg-slate-800/80 hover:bg-amber-600 border border-slate-700 hover:border-amber-500 p-8 rounded-3xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-left flex items-center gap-6">
-                <div class="text-5xl bg-amber-500/20 p-4 rounded-2xl group-hover:bg-white/20 transition">🏆</div>
-                <div>
-                    <h2 class="text-2xl font-black group-hover:text-white">Live Leaderboard</h2>
-                    <p class="text-gray-400 text-sm group-hover:text-amber-100 mt-1">Live Klasemen Peserta Lomba</p>
-                </div>
-            </a>
-
-            <!-- Menu Admin -->
-            <a href="/admin/login" class="group bg-slate-800/80 hover:bg-emerald-600 border border-slate-700 hover:border-emerald-500 p-8 rounded-3xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-left flex items-center gap-6">
-                <div class="text-5xl bg-emerald-500/20 p-4 rounded-2xl group-hover:bg-white/20 transition">⚙️</div>
-                <div>
-                    <h2 class="text-2xl font-black group-hover:text-white">Admin Panel</h2>
-                    <p class="text-gray-400 text-sm group-hover:text-emerald-100 mt-1">Kontrol lomba, peserta, juri, & rekap</p>
-                </div>
-            </a>
-
-            <!-- Menu Voting Penonton -->
-            <a href="/vote" class="group md:col-span-2 bg-slate-800/80 hover:bg-cyan-600 border border-slate-700 hover:border-cyan-500 p-8 rounded-3xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-left flex items-center gap-6 justify-center md:justify-start">
-                <div class="text-5xl bg-cyan-500/20 p-4 rounded-2xl group-hover:bg-white/20 transition">📱</div>
-                <div>
-                    <h2 class="text-2xl font-black group-hover:text-white">Voting Penonton</h2>
-                    <p class="text-gray-400 text-sm group-hover:text-cyan-100 mt-1">Dukung peserta favoritmu di sini menggunakan Smartphone Anda!</p>
-                </div>
-            </a>
-
-            <!-- Kartu Menu KORPRI Musical Challenge (Full-Width Card dengan Tombol Navigasi Mandiri yang Rapi) -->
-            <div class="relative text-left bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 border border-indigo-500/40 hover:border-pink-500/80 rounded-3xl p-6 sm:p-8 shadow-2xl transition duration-300 overflow-hidden md:col-span-2">
-                <!-- Efek Latar Glow -->
-                <div class="absolute -right-10 -bottom-10 w-52 h-52 bg-gradient-to-tr from-pink-500/20 to-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
-
-                <div class="flex flex-col gap-6 relative z-10">
-                    <!-- Top section: Icon, Badges, Title, Description -->
-                    <div class="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                        <div class="text-5xl sm:text-6xl p-3.5 bg-indigo-500/20 rounded-2xl border border-indigo-500/30 shrink-0">
-                            🎤
-                        </div>
-                        <div class="flex-1">
-                            <div class="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-pink-400 bg-pink-500/15 border border-pink-500/30 px-3 py-1 rounded-full mb-2">
-                                <span>✨</span>
-                                <span>FITUR UTAMA • TANTANGAN LAGU</span>
-                            </div>
-                            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                                KORPRI Musical Challenge
-                            </h2>
-                            <p class="text-slate-300 text-xs sm:text-sm mt-2 leading-relaxed">
-                                Undian Roda Putar 2-Tahap: <strong>Spin Genre</strong> (POP 1, POP 2, ROCK, DANGDUT, NUSANTARA MIX, SKA/REGGAE) lalu <strong>Spin Lagu</strong> dengan sistem 2x kesempatan undi per tim.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons: Clean, Distinct, Non-nested -->
-                    <div class="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-800/80">
-                        <a href="/display/challenge" target="_blank" class="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 via-rose-500 to-indigo-600 hover:from-pink-600 hover:to-indigo-700 text-white font-extrabold px-5 py-2.5 rounded-xl shadow-lg transition transform hover:scale-105 text-xs sm:text-sm">
-                            <span>📺</span>
-                            <span>Buka Layar Panggung</span>
-                            <span>→</span>
-                        </a>
-
-                        <a href="/display/challenge-results" target="_blank" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-pink-300 hover:text-white border border-slate-700 hover:border-pink-400 font-bold px-4 py-2.5 rounded-xl transition text-xs sm:text-sm">
-                            <span>📋</span>
-                            <span>Rekap Lagu Peserta</span>
-                        </a>
-
-                        <a href="/admin/challenge" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white border border-slate-700 hover:border-indigo-400 font-bold px-4 py-2.5 rounded-xl transition text-xs sm:text-sm">
-                            <span>⚙️</span>
-                            <span>Controller Admin</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Kartu Menu Spinwheel Display -->
-            <a href="/display/spinwheel" target="_blank" class="group relative block text-left bg-slate-900 border border-slate-700 rounded-3xl p-8 hover:bg-slate-800 transition transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-pink-500/20 overflow-hidden">
-                <!-- Efek Latar Glow -->
-                <div class="absolute -right-10 -top-10 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl group-hover:bg-pink-500/30 transition"></div>
-                
-                <div class="text-6xl mb-6 transform group-hover:rotate-12 transition duration-500">🎰</div>
-                <h2 class="text-2xl font-black text-white mb-2">Display Spinwheel</h2>
-                <p class="text-slate-400 text-sm">Buka layar utama Roda Keberuntungan untuk ditampilkan di Proyektor / Layar LED. Tampilan Full-Screen.</p>
-                
-                <div class="mt-8 flex items-center text-pink-400 font-bold group-hover:text-pink-300 text-sm">
-                    Buka Layar <span class="ml-2">→</span>
-                </div>
-            </a>
-
-            <!-- Kartu Menu Tradisional Display -->
-            <a href="/display/tradisional" target="_blank" class="group relative block text-left bg-slate-900 border border-slate-700 rounded-3xl p-8 hover:bg-slate-800 transition transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-teal-500/20 overflow-hidden">
-                <!-- Efek Latar Glow -->
-                <div class="absolute -left-10 -top-10 w-40 h-40 bg-teal-500/20 rounded-full blur-3xl group-hover:bg-teal-500/30 transition"></div>
-                
-                <div class="text-6xl mb-6 transform group-hover:-rotate-12 transition duration-500">🎯</div>
-                <h2 class="text-2xl font-black text-white mb-2">Display Tradisional</h2>
-                <p class="text-slate-400 text-sm">Buka layar utama daftar pemenang lomba tradisional untuk ditampilkan di Proyektor / Layar LED.</p>
-                
-                <div class="mt-8 flex items-center text-teal-400 font-bold group-hover:text-teal-300 text-sm">
-                    Buka Layar <span class="ml-2">→</span>
-                </div>
-            </a>
-            
-        </div>
-
-        <div class="mt-16 text-gray-500 text-xs">
-            &copy; 2026 KORPRI Musical Challenge • Lomba Karaoke Setwapres
-        </div>
+<body class="min-h-screen bg-slate-950 font-sans text-white">
+    <div class="pointer-events-none fixed inset-0 overflow-hidden">
+        <div class="absolute -left-48 -top-48 h-[34rem] w-[34rem] rounded-full bg-indigo-600/20 blur-3xl"></div>
+        <div class="absolute -right-48 top-1/3 h-[32rem] w-[32rem] rounded-full bg-pink-600/15 blur-3xl"></div>
+        <div class="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-cyan-500/10 blur-3xl"></div>
     </div>
 
+    <main class="relative mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        <header class="mx-auto mb-12 max-w-4xl text-center sm:mb-16">
+            <div class="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-white p-3 shadow-2xl shadow-indigo-950/50">
+                <img src="{{ asset('logo/setneg.png') }}" alt="Logo Setneg" class="h-full w-full object-contain">
+            </div>
+            <span class="inline-flex items-center gap-2 rounded-full border border-indigo-400/30 bg-indigo-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-indigo-200">Portal Acara</span>
+            <h1 class="mt-5 bg-gradient-to-r from-white via-indigo-100 to-pink-300 bg-clip-text text-4xl font-black leading-tight text-transparent sm:text-6xl lg:text-7xl">KORPRI Musical Challenge 2026</h1>
+            <p class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-slate-400 sm:text-lg">Pilih akses sesuai kebutuhan Anda. Menu dikelompokkan untuk admin, juri, monitoring live, dan layar panggung.</p>
+        </header>
+
+        <div class="space-y-12">
+            <section aria-labelledby="akses-utama">
+                <div class="mb-5">
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-emerald-400">Akses Utama</p>
+                    <h2 id="akses-utama" class="mt-1 text-2xl font-black">Admin & Voting</h2>
+                </div>
+                <div class="grid gap-5 lg:grid-cols-2">
+                    <a href="/admin" class="group relative overflow-hidden rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-500/15 to-slate-900 p-6 shadow-xl transition hover:-translate-y-1 hover:border-emerald-400/60 sm:p-8">
+                        <div class="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-emerald-400/10 blur-2xl group-hover:bg-emerald-400/20"></div>
+                        <div class="relative flex items-center gap-5">
+                            <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/15 text-4xl ring-1 ring-emerald-300/20">⚙️</div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-2"><h3 class="text-2xl font-black">Admin Panel</h3><span class="rounded-full bg-emerald-400/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-300">Satu Pintu</span></div>
+                                <p class="mt-2 text-sm leading-relaxed text-slate-400 group-hover:text-slate-200">Kelola peserta, juri karaoke, Best Supporter, voting, live control, challenge, spinwheel, dan rekap.</p>
+                            </div>
+                            <span class="hidden text-2xl text-emerald-300 transition group-hover:translate-x-1 sm:block">→</span>
+                        </div>
+                    </a>
+                    <a href="/vote" class="group relative overflow-hidden rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 to-slate-900 p-6 shadow-xl transition hover:-translate-y-1 hover:border-cyan-400/60 sm:p-8">
+                        <div class="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-cyan-400/10 blur-2xl group-hover:bg-cyan-400/20"></div>
+                        <div class="relative flex items-center gap-5">
+                            <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-cyan-400/15 text-4xl ring-1 ring-cyan-300/20">📱</div>
+                            <div class="min-w-0 flex-1"><h3 class="text-2xl font-black">Voting Penonton</h3><p class="mt-2 text-sm leading-relaxed text-slate-400 group-hover:text-slate-200">Berikan satu suara untuk peserta favorit melalui handphone.</p></div>
+                            <span class="hidden text-2xl text-cyan-300 transition group-hover:translate-x-1 sm:block">→</span>
+                        </div>
+                    </a>
+                </div>
+            </section>
+
+            <section aria-labelledby="penilaian-juri">
+                <div class="mb-5"><p class="text-xs font-black uppercase tracking-[0.18em] text-orange-400">Penilaian</p><h2 id="penilaian-juri" class="mt-1 text-2xl font-black">Panel Juri</h2><p class="mt-1 text-sm text-slate-500">Gunakan halaman sesuai tugas penilaian masing-masing juri.</p></div>
+                <div class="grid gap-5 md:grid-cols-2">
+                    <a href="/juri" class="group rounded-3xl border border-indigo-400/20 bg-slate-900/80 p-6 transition hover:-translate-y-1 hover:border-indigo-400/60 hover:bg-indigo-500/10 sm:p-7">
+                        <div class="flex items-start gap-4"><div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/15 text-3xl">🎤</div><div><p class="text-[10px] font-black uppercase tracking-[0.16em] text-indigo-300">Penilaian Peserta</p><h3 class="mt-1 text-xl font-black">Juri Karaoke</h3><p class="mt-2 text-sm leading-relaxed text-slate-400">Teknik kualitas vokal, pembagian peran, dan kreativitas penampilan.</p><span class="mt-4 inline-flex items-center gap-2 text-sm font-black text-indigo-300">Masuk dengan PIN <span class="transition group-hover:translate-x-1">→</span></span></div></div>
+                    </a>
+                    <a href="/juri-supporter" class="group rounded-3xl border border-orange-400/20 bg-slate-900/80 p-6 transition hover:-translate-y-1 hover:border-orange-400/60 hover:bg-orange-500/10 sm:p-7">
+                        <div class="flex items-start gap-4"><div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-orange-500/15 text-3xl">📣</div><div><p class="text-[10px] font-black uppercase tracking-[0.16em] text-orange-300">Penilaian Supporter</p><h3 class="mt-1 text-xl font-black">Juri Best Supporter</h3><p class="mt-2 text-sm leading-relaxed text-slate-400">Nilai kehebohan, kekompakan, kreativitas, dan ke-all-out-an supporter.</p><span class="mt-4 inline-flex items-center gap-2 text-sm font-black text-orange-300">Masuk dengan PIN <span class="transition group-hover:translate-x-1">→</span></span></div></div>
+                    </a>
+                </div>
+            </section>
+
+            <section aria-labelledby="live-monitoring">
+                <div class="mb-5"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500"></span><p class="text-xs font-black uppercase tracking-[0.18em] text-red-400">Live</p></div><h2 id="live-monitoring" class="mt-1 text-2xl font-black">Monitoring Langsung</h2></div>
+                <div class="grid gap-5 md:grid-cols-2">
+                    <a href="/live" target="_blank" class="group flex items-center gap-5 rounded-3xl border border-pink-400/20 bg-slate-900/80 p-6 transition hover:border-pink-400/60 hover:bg-pink-500/10"><div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-pink-500/15 text-3xl">📊</div><div class="flex-1"><h3 class="text-xl font-black">Live Score</h3><p class="mt-1 text-sm text-slate-400">Pantau nilai peserta yang sedang tampil.</p></div><span class="text-pink-300 transition group-hover:translate-x-1">↗</span></a>
+                    <a href="/display/leaderboard" target="_blank" class="group flex items-center gap-5 rounded-3xl border border-amber-400/20 bg-slate-900/80 p-6 transition hover:border-amber-400/60 hover:bg-amber-500/10"><div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 text-3xl">🏆</div><div class="flex-1"><h3 class="text-xl font-black">Live Leaderboard</h3><p class="mt-1 text-sm text-slate-400">Klasemen dari nilai juri yang telah dikunci.</p></div><span class="text-amber-300 transition group-hover:translate-x-1">↗</span></a>
+                </div>
+            </section>
+
+            <section aria-labelledby="display-panggung">
+                <div class="mb-5"><p class="text-xs font-black uppercase tracking-[0.18em] text-purple-400">Display</p><h2 id="display-panggung" class="mt-1 text-2xl font-black">Layar Panggung & Proyektor</h2><p class="mt-1 text-sm text-slate-500">Semua tautan dibuka pada tab baru untuk layar presentasi.</p></div>
+                @php
+                    $displays = [
+                        ['url' => '/display/challenge', 'icon' => '🎤', 'title' => 'Musical Challenge', 'description' => 'Spin genre dan lagu untuk layar panggung.'],
+                        ['url' => '/display/challenge-results', 'icon' => '📋', 'title' => 'Rekap Challenge', 'description' => 'Daftar genre dan lagu hasil undian peserta.'],
+                        ['url' => '/display/spinwheel', 'icon' => '🎰', 'title' => 'Spinwheel', 'description' => 'Roda keberuntungan layar penuh.'],
+                        ['url' => '/display/tradisional', 'icon' => '🎯', 'title' => 'Lomba Tradisional', 'description' => 'Display pemenang lomba tradisional.'],
+                        ['url' => '/display/winners', 'icon' => '🥇', 'title' => 'Daftar Pemenang', 'description' => 'Tampilkan daftar pemenang di layar utama.'],
+                    ];
+                @endphp
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach($displays as $display)
+                        <a href="{{ $display['url'] }}" target="_blank" class="group rounded-2xl border border-slate-700/80 bg-slate-900/70 p-5 transition hover:-translate-y-1 hover:border-slate-500 hover:bg-slate-800"><div class="mb-4 flex items-center justify-between"><span class="text-3xl">{{ $display['icon'] }}</span><span class="text-slate-500 transition group-hover:translate-x-1 group-hover:text-white">↗</span></div><h3 class="text-lg font-black">{{ $display['title'] }}</h3><p class="mt-2 text-sm leading-relaxed text-slate-400">{{ $display['description'] }}</p></a>
+                    @endforeach
+                </div>
+            </section>
+        </div>
+
+        <footer class="mt-16 border-t border-white/5 pt-6 text-center text-xs text-slate-600">&copy; 2026 KORPRI Musical Challenge • Lomba Karaoke Setwapres</footer>
+    </main>
 </body>
 </html>

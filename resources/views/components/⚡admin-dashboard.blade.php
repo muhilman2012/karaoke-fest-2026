@@ -211,7 +211,7 @@ new class extends Component
 
         $this->dispatch('swal:success', [
             'title' => 'Reset Berhasil!',
-            'text' => 'Nilai juri, voting, juara favorit, dan status tampil telah direset. Daftar peserta serta lagu tetap tersimpan.',
+            'text' => 'Nilai, voting, dan status tampil telah direset. Daftar peserta disinkronkan kembali menjadi 11 peserta resmi.',
             'icon' => 'success'
         ]);
     }
@@ -647,7 +647,8 @@ new class extends Component
                                 <li>Nilai dari seluruh juri & skor direset (kosong)</li>
                                 <li>Hasil perolehan suara voting penonton direset</li>
                                 <li>Status tampil direset; peserta nomor 1 kembali aktif</li>
-                                <li>Daftar peserta dan judul lagu tetap dipertahankan</li>
+                                <li>Daftar dikembalikan ke 11 peserta resmi beserta lagunya</li>
+                                <li>Peserta tambahan atau duplikat akan dihapus</li>
                                 <li>Voting akan ditutup setelah reset</li>
                             </ul>
                         </div>

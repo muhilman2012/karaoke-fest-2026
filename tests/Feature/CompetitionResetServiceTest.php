@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Judge;
+use App\Models\ChallengeParticipant;
 use App\Models\Participant;
 use App\Models\Score;
 use App\Models\Vote;
@@ -17,7 +18,7 @@ class CompetitionResetServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_resets_results_without_changing_participants_or_songs(): void
+    public function test_it_resets_results_and_restores_exactly_eleven_official_participants(): void
     {
         $first = Participant::create([
             'name' => 'Peserta Pertama',
@@ -32,6 +33,10 @@ class CompetitionResetServiceTest extends TestCase
             'order_number' => 2,
             'status' => 'performing',
         ]);
+        Participant::create(['name' => 'Duplikat Resmi', 'song_title' => '-', 'order_number' => 12]);
+        Participant::create(['name' => 'Peserta Tambahan', 'song_title' => '-', 'order_number' => 13]);
+        ChallengeParticipant::create(['name' => 'Duplikat Challenge', 'order_number' => 1]);
+        ChallengeParticipant::create(['name' => 'Peserta Challenge Tambahan', 'order_number' => 13]);
         $judge = Judge::create(['name' => 'Juri', 'passcode' => '9876']);
 
         Score::create([
@@ -58,19 +63,22 @@ class CompetitionResetServiceTest extends TestCase
 
         app(CompetitionResetService::class)->resetScoresAndVotes();
 
-        $this->assertDatabaseCount('participants', 2);
+        $this->assertDatabaseCount('participants', 11);
+        $this->assertDatabaseCount('challenge_participants', 11);
         $this->assertDatabaseCount('scores', 0);
         $this->assertDatabaseCount('votes', 0);
         $this->assertDatabaseCount('supporter_scores', 0);
         $this->assertDatabaseHas('participants', [
             'id' => $first->id,
-            'song_title' => 'Lagu Tetap Ada',
+            'name' => 'Sekretariat Dukungan Kabinet',
+            'song_title' => 'Sambalado - Ayu Ting Ting',
             'status' => 'performing',
             'is_favorite' => false,
         ]);
         $this->assertDatabaseHas('participants', [
             'id' => $second->id,
-            'song_title' => 'Lagu Kedua',
+            'name' => 'PPK Kemayoran',
+            'song_title' => 'Tor Monitor Ketua - Ecko Show, Juan Reza, Chesylino',
             'status' => 'waiting',
         ]);
         $this->assertFalse(Cache::get('voting_is_open'));
